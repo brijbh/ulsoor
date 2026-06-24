@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 
 import Header from "./components/Header";
 import KolamCanvas from "./components/KolamCanvas";
@@ -85,9 +85,14 @@ function getRenderedPattern(dots) {
   return rows.map((row) => row.count);
 }
 
+function randomSeed() {
+  return Math.floor(Math.random() * 0xffffff);
+}
+
 export default function App() {
   const [selectedShape, setSelectedShape] = useState("diamond");
   const [gridSize, setGridSize] = useState(5);
+  const [seed, setSeed] = useState(() => randomSeed());
 
   const shape = SHAPES.find(({ id }) => id === selectedShape) ?? SHAPES[0];
   
@@ -117,14 +122,15 @@ export default function App() {
   };
 
   const kolam = useMemo(() => {
-    return buildKolam({ nd: gridSize, shapeId: shape.id });
-  }, [shape.id, gridSize]);
+    return buildKolam({ nd: gridSize, shapeId: shape.id, seed });
+  }, [shape.id, gridSize, seed]);
   const pattern = shape.id === "diamond"
     ? getPattern(shape.id, gridSize)
     : getRenderedPattern(kolam.dots);
   const gridLabel = pattern.join(" - ");
 
   const animationRef = useRef(null);
+  const segmentLengthsRef = useRef([]);
   const [progress, setProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasAnimationStarted, setHasAnimationStarted] = useState(false);
@@ -178,23 +184,30 @@ export default function App() {
 
   const handleStep = () => {
     if (animationRef.current) {
-      animationRef.current.stepForward(kolam.segments, [], kolam.dots);
+      animationRef.current.stepForward(kolam.segments, segmentLengthsRef.current, kolam.dots);
       setHasAnimationStarted(true);
     }
   };
 
-  const handleSelectShape = (shapeId) => {
-    setSelectedShape(shapeId);
+  const resetAnimation = useCallback(() => {
     animationRef.current?.reset();
     setIsPlaying(false);
     setHasAnimationStarted(false);
+  }, []);
+
+  const handleGenerate = useCallback(() => {
+    setSeed(randomSeed());
+    resetAnimation();
+  }, [resetAnimation]);
+
+  const handleSelectShape = (shapeId) => {
+    setSelectedShape(shapeId);
+    resetAnimation();
   };
 
   const handleSelectGridSize = (size) => {
     setGridSize(size);
-    animationRef.current?.reset();
-    setIsPlaying(false);
-    setHasAnimationStarted(false);
+    resetAnimation();
   };
 
   return (
@@ -214,6 +227,9 @@ export default function App() {
           <p className="section-label">Pattern</p>
           <p className="pattern-label">{gridLabel}</p>
         </div>
+        <button className="generate-button" type="button" onClick={handleGenerate}>
+          Generate New
+        </button>
         <p className="side-note">A kolam a day,<br />brings peace<br />in every way.</p>
       </aside>
       <main className="canvas-area" aria-label="Kolam drawing area">
@@ -238,12 +254,7 @@ export default function App() {
           <GridSelector
             selectedShape={selectedShape}
             gridSize={gridSize}
-            onSelectGrid={(size) => {
-              setGridSize(size);
-              animationRef.current?.reset();
-              setIsPlaying(false);
-              setHasAnimationStarted(false);
-            }}
+            onSelectGrid={handleSelectGridSize}
           />
           <p className="mobile-pattern-label">Grid: {gridLabel}</p>
         </div>
@@ -254,6 +265,7 @@ export default function App() {
           segments={kolam.segments}
           progress={progress}
           showHint={!hasAnimationStarted}
+          onSegmentLengths={(lengths) => { segmentLengthsRef.current = lengths; }}
         />
 
         <Controls
@@ -267,20 +279,11 @@ export default function App() {
           onSpeedChange={handleSpeedChange}
         />
 
-        <nav className="mobile-nav" aria-label="Primary">
-          <a className="mobile-nav-item is-active" href="#home">
-            <span aria-hidden="true">⌂</span>
-            <span>Home</span>
-          </a>
-          <a className="mobile-nav-item" href="#grids">
-            <span aria-hidden="true">⠿</span>
-            <span>Grids</span>
-          </a>
-          <a className="mobile-nav-item" href="#favorites">
-            <span aria-hidden="true">♡</span>
-            <span>Favorites</span>
-          </a>
-        </nav>
+        <div className="mobile-nav">
+          <button className="generate-button" type="button" onClick={handleGenerate}>
+            Generate New
+          </button>
+        </div>
       </main>
     </div>
   );
