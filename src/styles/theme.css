@@ -9,6 +9,14 @@
   --border: #e6d8bf;
   --accent: #70451f;
   --accent-dark: #4a2b14;
+
+  /* Glassmorphism surfaces — themed */
+  --surface-glass: rgba(255, 250, 241, 0.86);
+  --surface-glass-active: rgba(255, 247, 231, 0.96);
+  --surface-panel: rgba(255, 248, 235, 0.54);
+  --canvas-glow: rgba(255, 255, 255, 0.8);
+  --controls-bg: rgba(255, 250, 241, 0.90);
+  --nav-bg: rgba(255, 250, 241, 0.92);
 }
 
 :root[data-theme="dark"] {
@@ -22,4 +30,12 @@
   --border: #3d342d;
   --accent: #b07e53;
   --accent-dark: #8d5c36;
+
+  /* Glassmorphism surfaces — dark overrides */
+  --surface-glass: rgba(36, 31, 28, 0.88);
+  --surface-glass-active: rgba(50, 42, 36, 0.96);
+  --surface-panel: rgba(26, 22, 20, 0.60);
+  --canvas-glow: rgba(36, 28, 20, 0.30);
+  --controls-bg: rgba(36, 31, 28, 0.92);
+  --nav-bg: rgba(26, 22, 20, 0.94);
 }

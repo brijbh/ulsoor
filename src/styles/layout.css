@@ -56,7 +56,7 @@
   place-items: center;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: rgba(255, 250, 241, 0.86);
+  background: var(--surface-glass);
   color: var(--text);
   box-shadow: 0 10px 28px rgba(70, 49, 29, 0.06);
   cursor: pointer;
@@ -65,7 +65,7 @@
 
 .shape-button[aria-pressed="true"] {
   border-color: rgba(112, 69, 31, 0.48);
-  background: rgba(255, 247, 231, 0.96);
+  background: var(--surface-glass-active);
   box-shadow: inset 0 0 0 1px rgba(112, 69, 31, 0.18);
   color: var(--accent);
 }
@@ -122,7 +122,7 @@
   place-items: center;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: rgba(255, 250, 241, 0.86);
+  background: var(--surface-glass);
   color: var(--text);
   box-shadow: 0 4px 12px rgba(70, 49, 29, 0.06);
   cursor: pointer;
@@ -134,7 +134,7 @@
 
 .size-button.is-active {
   border-color: rgba(112, 69, 31, 0.48);
-  background: rgba(255, 247, 231, 0.96);
+  background: var(--surface-glass-active);
   box-shadow: inset 0 0 0 1px rgba(112, 69, 31, 0.18);
   color: var(--accent);
 }
@@ -224,7 +224,7 @@
   justify-content: space-between;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: rgba(255, 250, 241, 0.86);
+  background: var(--surface-glass);
   color: var(--text);
   box-shadow: 0 10px 28px rgba(70, 49, 29, 0.08);
   cursor: pointer;
@@ -269,7 +269,7 @@
   min-height: 100svh;
   padding: 20px 28px 96px;
   background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.8), transparent 38%),
+    radial-gradient(circle at center, var(--canvas-glow), transparent 38%),
     var(--bg);
 }
 
@@ -347,8 +347,8 @@
   align-items: center;
   gap: 12px;
   padding: 18px 24px 12px;
-  background: rgba(255, 250, 241, 0.9);
-  border: 1px solid rgba(230, 216, 191, 0.72);
+  background: var(--controls-bg);
+  border: 1px solid var(--border);
   border-radius: 32px;
   box-shadow: 0 16px 46px rgba(70, 49, 29, 0.14);
   transform: translateX(-50%);
@@ -410,7 +410,7 @@
   place-items: center;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background: var(--surface);
+  background: var(--surface-glass);
   color: var(--text);
   box-shadow: 0 9px 22px rgba(70, 49, 29, 0.1);
   font-size: 22px;
@@ -492,7 +492,7 @@
   height: 76px;
   padding: 12px 28px calc(12px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--border);
-  background: rgba(255, 250, 241, 0.92);
+  background: var(--nav-bg);
   backdrop-filter: blur(10px);
 }
 
@@ -533,7 +533,7 @@
     gap: 26px;
     min-height: 100svh;
     padding: 34px 22px 48px 26px;
-    background: rgba(255, 248, 235, 0.54);
+    background: var(--surface-panel);
     border-right: 1px solid var(--border);
     text-align: left;
   }
