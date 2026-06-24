@@ -19,7 +19,7 @@ function getSafePathLength(pathElement) {
   }
 }
 
-export default function KolamCanvas({ dots = [], path, segments, progress, showHint, onSegmentLengths }) {
+export default function KolamCanvas({ dots = [], path, segments, progress, showHint, onSegmentLengths, onCanvasClick }) {
   const pathRef = useRef(null);
   const segmentRefs = useRef([]);
   const [pathLength, setPathLength] = useState(0);
@@ -64,7 +64,7 @@ export default function KolamCanvas({ dots = [], path, segments, progress, showH
   }, [path, segments]);
 
   return (
-    <div className="canvas">
+    <div className="canvas" onClick={onCanvasClick}>
       {showHint && (
         <div className="hint">
           Tap Play to begin the kolam

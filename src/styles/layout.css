@@ -265,29 +265,12 @@
 .canvas-area {
   position: relative;
   display: grid;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: 1fr;
   min-height: 100svh;
-  padding: 20px 28px 96px;
+  padding: 0 0 172px;
   background:
     radial-gradient(circle at center, var(--canvas-glow), transparent 38%),
     var(--bg);
-}
-
-.mobile-topbar {
-  display: grid;
-  grid-template-columns: 42px 1fr 42px;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 26px;
-}
-
-.mobile-topbar .header {
-  justify-self: center;
-  font-size: 18px;
-}
-
-.mobile-topbar .brand-mark {
-  display: none;
 }
 
 .icon-button {
@@ -301,14 +284,6 @@
   cursor: pointer;
 }
 
-.mobile-selector {
-  margin-bottom: 16px;
-}
-
-.mobile-selector + .mobile-selector {
-  margin-bottom: 20px;
-}
-
 .canvas {
   position: relative;
   width: 100%;
@@ -320,9 +295,9 @@
 
 .svg {
   display: block;
-  width: min(80vw, 360px);
+  width: min(86vw, 460px);
   height: auto;
-  max-height: calc(100svh - 380px);
+  max-height: calc(100svh - 220px);
 }
 
 .dot {
@@ -337,21 +312,7 @@
 }
 
 .controls {
-  position: absolute;
-  left: 50%;
-  bottom: 76px;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 18px 24px 12px;
-  background: var(--controls-bg);
-  border: 1px solid var(--border);
-  border-radius: 32px;
-  box-shadow: 0 16px 46px rgba(70, 49, 29, 0.14);
-  transform: translateX(-50%);
-  backdrop-filter: blur(12px);
+  display: none; /* replaced by .mobile-dock on mobile; shown on desktop via media query */
 }
 
 .main-controls {
@@ -480,19 +441,258 @@
   box-shadow: 0 4px 12px rgba(70, 49, 29, 0.18);
 }
 
-.mobile-nav {
+/* Wordmark — top of canvas, always dark text, whisper opacity */
+.canvas-wordmark {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
-  justify-content: center;
-  height: 76px;
-  padding: 12px 28px calc(12px + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--border);
-  background: var(--nav-bg);
-  backdrop-filter: blur(10px);
+  gap: 7px;
+  pointer-events: none;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+.wordmark-icon {
+  width: 20px;
+  height: 18px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.wordmark-text {
+  font-family: Georgia, serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  color: var(--text);
+  opacity: 0.28;
+}
+
+/* Mobile dock — always dark panel, floats above canvas */
+.mobile-dock {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 14px 16px max(14px, calc(6px + env(safe-area-inset-bottom)));
+  background: #191513;
+  border-radius: 22px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.36);
+  transition: opacity 0.4s ease;
+}
+
+.mobile-dock.is-immersive {
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.dock-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* --- Row 1: shapes, grid, icons, generate --- */
+
+.dock-shapes {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.dock-shape-btn {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(245, 237, 228, 0.55);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.dock-shape-btn.is-active {
+  border-color: rgba(255, 117, 23, 0.55);
+  background: rgba(255, 117, 23, 0.14);
+  color: #ff7517;
+}
+
+.dock-sep {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.10);
+  flex-shrink: 0;
+}
+
+.dock-grid-control {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dock-grid-control .grid-slider {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.dock-grid-control .grid-slider::-webkit-slider-thumb {
+  background: #ff7517;
+  border-color: #191513;
+}
+
+.dock-grid-control .grid-slider::-moz-range-thumb {
+  background: #ff7517;
+  border-color: #191513;
+}
+
+.dock-grid-label {
+  font-size: 10px;
+  font-family: Georgia, serif;
+  font-weight: 700;
+  color: rgba(245, 237, 228, 0.45);
+  white-space: nowrap;
+  min-width: 22px;
+  text-align: right;
+}
+
+.dock-icon-btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: rgba(245, 237, 228, 0.45);
+  font-size: 17px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  transition: color 0.15s ease;
+}
+
+.dock-icon-btn:active {
+  color: rgba(245, 237, 228, 0.85);
+}
+
+.dock-new-btn {
+  height: 32px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 117, 23, 0.38);
+  border-radius: 16px;
+  background: rgba(255, 117, 23, 0.10);
+  color: #ff9940;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.dock-new-btn:active {
+  background: rgba(255, 117, 23, 0.24);
+}
+
+/* --- Row 2: speed pills + play controls --- */
+
+.dock-speeds {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.dock-speed-pill {
+  height: 30px;
+  padding: 0 9px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(245, 237, 228, 0.45);
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.dock-speed-pill.is-active {
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #f5ede4;
+}
+
+/* Step by Step — visually distinct, teaching-mode emphasis */
+.dock-speed-step {
+  border-color: rgba(255, 117, 23, 0.28);
+  color: rgba(255, 153, 64, 0.65);
+  font-size: 10.5px;
+}
+
+.dock-speed-step.is-active {
+  background: rgba(255, 117, 23, 0.16);
+  border-color: rgba(255, 117, 23, 0.55);
+  color: #ff9940;
+  box-shadow: 0 0 10px rgba(255, 117, 23, 0.18);
+}
+
+.dock-playcontrols {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.dock-ctrl-btn {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(245, 237, 228, 0.7);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dock-ctrl-btn:disabled {
+  opacity: 0.22;
+  cursor: default;
+}
+
+.dock-ctrl-btn:active:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.dock-ctrl-primary {
+  width: 46px;
+  height: 46px;
+  background: #ff7517;
+  border: none;
+  color: #fff;
+  font-size: 17px;
+  box-shadow: 0 4px 16px rgba(255, 117, 23, 0.38);
+}
+
+.dock-ctrl-primary:active:not(:disabled) {
+  transform: scale(0.95);
+  background: #e0650f;
 }
 
 .desktop-tools {
@@ -613,6 +813,55 @@
   line-height: 1.4;
 }
 
+.about-help {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--surface-glass);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.about-help-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 2px;
+}
+
+.about-help-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.about-help-list li {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.help-key {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.help-desc {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .about-footer {
   display: flex;
   flex-direction: column;
@@ -641,6 +890,95 @@
   opacity: 0.72;
 }
 
+/* Dark theme — dock flips to bright so it contrasts against the dark canvas */
+:root[data-theme="dark"] .mobile-dock {
+  background: #ede0c8;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+}
+
+:root[data-theme="dark"] .dock-shape-btn {
+  border-color: rgba(0, 0, 0, 0.10);
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(25, 21, 19, 0.48);
+}
+
+:root[data-theme="dark"] .dock-shape-btn.is-active {
+  border-color: rgba(112, 69, 31, 0.55);
+  background: rgba(112, 69, 31, 0.12);
+  color: #70451f;
+}
+
+:root[data-theme="dark"] .dock-sep {
+  background: rgba(0, 0, 0, 0.10);
+}
+
+:root[data-theme="dark"] .dock-grid-control .grid-slider {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme="dark"] .dock-grid-control .grid-slider::-webkit-slider-thumb {
+  background: #70451f;
+  border-color: #ede0c8;
+}
+
+:root[data-theme="dark"] .dock-grid-control .grid-slider::-moz-range-thumb {
+  background: #70451f;
+  border-color: #ede0c8;
+}
+
+:root[data-theme="dark"] .dock-grid-label {
+  color: rgba(25, 21, 19, 0.38);
+}
+
+:root[data-theme="dark"] .dock-icon-btn {
+  color: rgba(25, 21, 19, 0.40);
+}
+
+:root[data-theme="dark"] .dock-new-btn {
+  border-color: rgba(112, 69, 31, 0.38);
+  background: rgba(112, 69, 31, 0.07);
+  color: #70451f;
+}
+
+:root[data-theme="dark"] .dock-speed-pill {
+  border-color: rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(25, 21, 19, 0.38);
+}
+
+:root[data-theme="dark"] .dock-speed-pill.is-active {
+  background: rgba(0, 0, 0, 0.10);
+  border-color: rgba(0, 0, 0, 0.18);
+  color: #191513;
+}
+
+:root[data-theme="dark"] .dock-speed-step {
+  border-color: rgba(112, 69, 31, 0.28);
+  color: rgba(112, 69, 31, 0.55);
+}
+
+:root[data-theme="dark"] .dock-speed-step.is-active {
+  background: rgba(112, 69, 31, 0.12);
+  border-color: rgba(112, 69, 31, 0.55);
+  color: #70451f;
+  box-shadow: 0 0 10px rgba(112, 69, 31, 0.14);
+}
+
+:root[data-theme="dark"] .dock-ctrl-btn {
+  border-color: rgba(0, 0, 0, 0.11);
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(25, 21, 19, 0.60);
+}
+
+:root[data-theme="dark"] .dock-ctrl-primary {
+  background: #70451f;
+  box-shadow: 0 4px 16px rgba(112, 69, 31, 0.28);
+}
+
+:root[data-theme="dark"] .dock-ctrl-primary:active:not(:disabled) {
+  background: #5a3516;
+}
+
 /* About modal — desktop: centered, not bottom sheet */
 @media (min-width: 600px) {
   .about-overlay {
@@ -653,19 +991,20 @@
   }
 }
 
-/* Tablet portrait: larger canvas, still mobile layout (no side panel) */
+/* Tablet portrait: larger canvas, dock still active */
 @media (min-width: 600px) and (max-width: 899px) {
   .canvas-area {
-    padding: 20px 40px 100px;
+    padding: 0 0 190px;
   }
 
   .svg {
-    width: min(76vw, 480px);
-    max-height: calc(100svh - 360px);
+    width: min(72vw, 520px);
+    max-height: calc(100svh - 220px);
   }
 
-  .mobile-topbar .brand-mark {
-    display: inline;
+  .mobile-dock {
+    left: 24px;
+    right: 24px;
   }
 
   .hint {
@@ -699,9 +1038,8 @@
     font-size: 22px;
   }
 
-  .mobile-topbar,
-  .mobile-selector,
-  .mobile-nav {
+  .mobile-dock,
+  .canvas-wordmark {
     display: none;
   }
 
@@ -722,7 +1060,6 @@
 
   .canvas {
     align-items: center;
-    padding-top: 0;
   }
 
   .svg {
@@ -731,14 +1068,25 @@
   }
 
   .controls {
+    position: absolute;
+    left: 50%;
     bottom: 34px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 26px;
     padding: 16px 34px 12px;
+    background: var(--controls-bg);
+    border: 1px solid var(--border);
+    border-radius: 32px;
+    box-shadow: 0 16px 46px rgba(70, 49, 29, 0.14);
+    transform: translateX(-50%);
+    backdrop-filter: blur(12px);
   }
 
   .hint {
-    top: auto;
-    bottom: 160px;
+    bottom: 168px;
     font-size: 18px;
   }
 }

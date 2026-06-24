@@ -137,6 +137,8 @@ export default function App() {
   const [speed, setSpeed] = useState(1);
   const [theme, setTheme] = useState("light");
   const [showAbout, setShowAbout] = useState(false);
+  const [isImmersive, setIsImmersive] = useState(false);
+  const [isStepMode, setIsStepMode] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -149,7 +151,7 @@ export default function App() {
   useEffect(() => {
     animationRef.current = createKolamAnimation({
       onProgress: setProgress,
-      onComplete: () => setIsPlaying(false),
+      onComplete: () => { setIsPlaying(false); setIsImmersive(false); },
     });
 
     return () => {
@@ -162,6 +164,21 @@ export default function App() {
     animationRef.current?.updateOptions({ speedMultiplier: newSpeed });
   };
 
+  const handleSpeedSelect = (value) => {
+    if (value === "step") {
+      setIsStepMode(true);
+      if (isPlaying) {
+        animationRef.current?.pause();
+        setIsPlaying(false);
+        setIsImmersive(false);
+      }
+    } else {
+      setIsStepMode(false);
+      setSpeed(value);
+      animationRef.current?.updateOptions({ speedMultiplier: value });
+    }
+  };
+
   const handlePlay = () => {
     if (animationRef.current?.progress >= 1) {
       animationRef.current.reset();
@@ -170,17 +187,20 @@ export default function App() {
     animationRef.current?.start();
     setIsPlaying(true);
     setHasAnimationStarted(true);
+    if (!isStepMode) setIsImmersive(true);
   };
 
   const handlePause = () => {
     animationRef.current?.pause();
     setIsPlaying(false);
+    setIsImmersive(false);
   };
 
   const handleReset = () => {
     animationRef.current?.reset();
     setIsPlaying(false);
     setHasAnimationStarted(false);
+    setIsImmersive(false);
   };
 
   const handleStep = () => {
@@ -194,6 +214,7 @@ export default function App() {
     animationRef.current?.reset();
     setIsPlaying(false);
     setHasAnimationStarted(false);
+    setIsImmersive(false);
   }, []);
 
   const handleGenerate = useCallback(() => {
@@ -242,26 +263,6 @@ export default function App() {
             {theme === "light" ? "☼" : "☾"}
           </button>
         </div>
-        <div className="mobile-topbar" aria-label="Mobile header">
-          <button className="icon-button" type="button" aria-label="About" onClick={() => setShowAbout(true)}>ⓘ</button>
-          <Header />
-          <button className="icon-button" type="button" aria-label="Theme" onClick={toggleTheme}>
-            {theme === "light" ? "☼" : "☾"}
-          </button>
-        </div>
-        <div className="mobile-selector">
-          <ShapeSelector
-            selectedShape={selectedShape}
-            onSelectShape={handleSelectShape}
-          />
-          <GridSelector
-            selectedShape={selectedShape}
-            gridSize={gridSize}
-            onSelectGrid={handleSelectGridSize}
-          />
-          <p className="mobile-pattern-label">Grid: {gridLabel}</p>
-        </div>
-        
         <KolamCanvas
           dots={kolam.dots}
           path={kolam.pathD}
@@ -269,6 +270,7 @@ export default function App() {
           progress={progress}
           showHint={!hasAnimationStarted}
           onSegmentLengths={(lengths) => { segmentLengthsRef.current = lengths; }}
+          onCanvasClick={() => { if (isImmersive) setIsImmersive(false); }}
         />
 
         <Controls
@@ -282,10 +284,117 @@ export default function App() {
           onSpeedChange={handleSpeedChange}
         />
 
-        <div className="mobile-nav">
-          <button className="generate-button" type="button" onClick={handleGenerate}>
-            Generate New
-          </button>
+        {/* Subtle brand identity at top of canvas */}
+        <div className="canvas-wordmark" aria-hidden="true">
+          <img src="/favicon.svg" className="wordmark-icon" alt="" />
+          <span className="wordmark-text">KOLAMPODU</span>
+        </div>
+
+        {/* Dark control dock */}
+        <div className={`mobile-dock${isImmersive ? " is-immersive" : ""}`} aria-label="Controls">
+          {/* Row 1 — shape, grid, icons, generate */}
+          <div className="dock-row">
+            <div className="dock-shapes">
+              {SHAPES.map((s) => (
+                <button
+                  key={s.id}
+                  className={`dock-shape-btn${s.id === selectedShape ? " is-active" : ""}`}
+                  type="button"
+                  aria-label={s.label}
+                  aria-pressed={s.id === selectedShape}
+                  onClick={() => handleSelectShape(s.id)}
+                >
+                  <span className={`shape-icon shape-icon-${s.id}`} aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+            <div className="dock-sep" aria-hidden="true" />
+            <div className="dock-grid-control">
+              <input
+                type="range"
+                min="3"
+                max="15"
+                value={gridSize}
+                className="grid-slider"
+                onChange={(e) => handleSelectGridSize(parseInt(e.target.value))}
+                aria-label="Grid size"
+              />
+              <span className="dock-grid-label">{gridSize}×{gridSize}</span>
+            </div>
+            <div className="dock-sep" aria-hidden="true" />
+            <button className="dock-icon-btn" type="button" aria-label="Toggle theme" onClick={toggleTheme}>
+              {theme === "light" ? "☼" : "☾"}
+            </button>
+            <button className="dock-icon-btn" type="button" aria-label="About" onClick={() => setShowAbout(true)}>
+              ⓘ
+            </button>
+            <button className="dock-new-btn" type="button" aria-label="Generate new pattern" onClick={handleGenerate}>
+              ⟳ New
+            </button>
+          </div>
+
+          {/* Row 2 — speed mode + play controls */}
+          <div className="dock-row">
+            <div className="dock-speeds">
+              {[{ l: "Slow", v: 0.5 }, { l: "1×", v: 1 }, { l: "Fast", v: 2 }].map(({ l, v }) => (
+                <button
+                  key={v}
+                  className={`dock-speed-pill${!isStepMode && speed === v ? " is-active" : ""}`}
+                  type="button"
+                  onClick={() => handleSpeedSelect(v)}
+                >
+                  {l}
+                </button>
+              ))}
+              <button
+                className={`dock-speed-pill dock-speed-step${isStepMode ? " is-active" : ""}`}
+                type="button"
+                onClick={() => handleSpeedSelect("step")}
+              >
+                Step by Step
+              </button>
+            </div>
+            <div className="dock-playcontrols">
+              <button
+                className="dock-ctrl-btn"
+                type="button"
+                aria-label="Reset"
+                disabled={!hasAnimationStarted}
+                onClick={handleReset}
+              >
+                ↺
+              </button>
+              {isStepMode ? (
+                <button
+                  className="dock-ctrl-btn dock-ctrl-primary"
+                  type="button"
+                  aria-label="Step forward"
+                  disabled={progress >= 1}
+                  onClick={handleStep}
+                >
+                  →
+                </button>
+              ) : isPlaying ? (
+                <button
+                  className="dock-ctrl-btn dock-ctrl-primary"
+                  type="button"
+                  aria-label="Pause"
+                  onClick={handlePause}
+                >
+                  Ⅱ
+                </button>
+              ) : (
+                <button
+                  className="dock-ctrl-btn dock-ctrl-primary"
+                  type="button"
+                  aria-label="Play"
+                  onClick={handlePlay}
+                >
+                  ▶
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </main>
 
@@ -298,22 +407,45 @@ export default function App() {
             <p className="about-tagline">A guided kolam drawing experience</p>
 
             <p className="about-body">
-              Kolam is a 5,000-year-old South Indian art form, drawn with rice flour
-              around a grid of dots called <em>pullis</em>. The most revered form is the
-              one-stroke kolam — the entire pattern drawn in a single unbroken line.
-            </p>
-            <p className="about-body">
-              Every kolam here is algorithmically generated — gate matrices, symmetric
-              path evolution, and aesthetic parameters from a peer-reviewed 2026 paper.
-              No two patterns are the same.
+              Kolam is a 5,000-year-old South Indian art form drawn with rice flour around
+              a grid of dots called <em>pullis</em>. The most revered form is the one-stroke
+              kolam — an entire pattern in a single unbroken line. Every kolam here is
+              algorithmically unique, generated fresh each time.
             </p>
 
-            <ul className="about-features">
-              <li>▶ Play to watch it draw itself</li>
-              <li>⟳ Generate New for a fresh pattern</li>
-              <li>Slow / Normal / Fast drawing speed</li>
-              <li>Light and dark theme</li>
-            </ul>
+            <div className="about-help">
+              <p className="about-help-title">How to use</p>
+              <ul className="about-help-list">
+                <li>
+                  <span className="help-key">◇ ○ □</span>
+                  <span className="help-desc">Pick the kolam family — Diamond, Circle, or Square. Each has its own geometry.</span>
+                </li>
+                <li>
+                  <span className="help-key">Grid slider</span>
+                  <span className="help-desc">Sets the dot grid from 3×3 to 15×15. Larger grids make richer, more intricate patterns.</span>
+                </li>
+                <li>
+                  <span className="help-key">⟳ New</span>
+                  <span className="help-desc">Generates a completely new kolam. Tap as many times as you like — no two are ever the same.</span>
+                </li>
+                <li>
+                  <span className="help-key">Slow · 1× · Fast</span>
+                  <span className="help-desc">Auto-play the drawing at your pace. Controls fade for a clean view — tap the canvas to bring them back.</span>
+                </li>
+                <li>
+                  <span className="help-key">Step by Step</span>
+                  <span className="help-desc">Teaching mode. Tap → to draw one stroke at a time and watch the pattern build segment by segment.</span>
+                </li>
+                <li>
+                  <span className="help-key">▶ · ↺</span>
+                  <span className="help-desc">Play starts the drawing. Reset starts it over from the beginning.</span>
+                </li>
+                <li>
+                  <span className="help-key">☼ · ☾</span>
+                  <span className="help-desc">Switch between light and dark themes.</span>
+                </li>
+              </ul>
+            </div>
 
             <div className="about-footer">
               <p className="about-credit">
