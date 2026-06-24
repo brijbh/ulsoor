@@ -38,6 +38,18 @@
 
 ---
 
+## ▶ NEXT SESSION — Resume Here
+
+Three focus areas in order:
+
+1. **Triangle shape fix (v1.3)** — currently hidden from UI. The projected triangle kolam has straight rail-like sides instead of flowing curves. Needs aesthetic investigation — likely a projection or gate-traversal issue specific to triangular lattice.
+
+2. **Gallery (v1.2)** — Save patterns to `localStorage` as `{seed, shapeId, nd}` (~50 bytes each). Gallery view renders SVG thumbnails on-demand from saved seeds (no images stored). Heart/bookmark button on the canvas to save.
+
+3. **Share (v1.2)** — Copy-to-clipboard URL: `ulsoor.vercel.app/?seed=X&nd=Y&shape=Z`. Anyone who opens the link sees the exact same pattern. No auth needed.
+
+---
+
 ## Pending / Next Up
 
 ### v1.1 — Mobile Polish (in progress)
