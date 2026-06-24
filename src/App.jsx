@@ -136,6 +136,7 @@ export default function App() {
   const [hasAnimationStarted, setHasAnimationStarted] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [theme, setTheme] = useState("light");
+  const [showAbout, setShowAbout] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -231,16 +232,18 @@ export default function App() {
           Generate New
         </button>
         <p className="side-note">A kolam a day,<br />brings peace<br />in every way.</p>
+        <button className="about-link" type="button" onClick={() => setShowAbout(true)}>
+          About
+        </button>
       </aside>
       <main className="canvas-area" aria-label="Kolam drawing area">
         <div className="desktop-tools" aria-label="Display options">
-          <button className="icon-button" type="button" aria-label="Theme" onClick={toggleTheme}>
+          <button className="icon-button" type="button" aria-label="Toggle theme" onClick={toggleTheme}>
             {theme === "light" ? "☼" : "☾"}
           </button>
-          <button className="icon-button" type="button" aria-label="Settings">⚙</button>
         </div>
         <div className="mobile-topbar" aria-label="Mobile header">
-          <button className="icon-button" type="button" aria-label="Menu">☰</button>
+          <button className="icon-button" type="button" aria-label="About" onClick={() => setShowAbout(true)}>ⓘ</button>
           <Header />
           <button className="icon-button" type="button" aria-label="Theme" onClick={toggleTheme}>
             {theme === "light" ? "☼" : "☾"}
@@ -285,6 +288,52 @@ export default function App() {
           </button>
         </div>
       </main>
+
+      {showAbout && (
+        <div className="about-overlay" role="dialog" aria-modal="true" aria-label="About Kolampodu" onClick={() => setShowAbout(false)}>
+          <div className="about-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="about-close" type="button" aria-label="Close" onClick={() => setShowAbout(false)}>✕</button>
+
+            <p className="about-app-name">Kolampodu</p>
+            <p className="about-tagline">A guided kolam drawing experience</p>
+
+            <p className="about-body">
+              Kolam is a 5,000-year-old South Indian art form, drawn with rice flour
+              around a grid of dots called <em>pullis</em>. The most revered form is the
+              one-stroke kolam — the entire pattern drawn in a single unbroken line.
+            </p>
+            <p className="about-body">
+              Every kolam here is algorithmically generated — gate matrices, symmetric
+              path evolution, and aesthetic parameters from a peer-reviewed 2026 paper.
+              No two patterns are the same.
+            </p>
+
+            <ul className="about-features">
+              <li>▶ Play to watch it draw itself</li>
+              <li>⟳ Generate New for a fresh pattern</li>
+              <li>Slow / Normal / Fast drawing speed</li>
+              <li>Light and dark theme</li>
+            </ul>
+
+            <div className="about-footer">
+              <p className="about-credit">
+                An ode to an ancient wisdom — kolam wove sacred geometry into rice
+                flour at the doorstep, every single day, for 5,000 years. It taught
+                us that mathematics is not a discipline. It is devotion, drawn at
+                the threshold.
+              </p>
+              <a
+                className="about-profile-link"
+                href="https://brijbh.github.io/home/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                brijbh.github.io/home →
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

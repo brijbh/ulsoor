@@ -500,6 +500,160 @@
   display: none;
 }
 
+/* About link in side panel */
+.about-link {
+  margin-top: auto;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  transition: color 0.2s ease;
+}
+
+.about-link:hover {
+  color: var(--accent);
+}
+
+/* About modal overlay */
+.about-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(4px);
+  padding: 0 0 env(safe-area-inset-bottom);
+}
+
+.about-modal {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 88svh;
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  padding: 32px 28px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.about-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--surface-glass);
+  color: var(--muted);
+  border-radius: 50%;
+  font-size: 13px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: color 0.2s ease;
+}
+
+.about-close:hover {
+  color: var(--text);
+}
+
+.about-app-name {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+  margin: 0;
+}
+
+.about-tagline {
+  font-size: 13px;
+  color: var(--accent);
+  letter-spacing: 0.6px;
+  margin: -8px 0 0;
+}
+
+.about-body {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text);
+  margin: 0;
+}
+
+.about-body em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.about-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--surface-glass);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.about-features li {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.about-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.about-credit {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.about-profile-link {
+  font-size: 13px;
+  color: var(--accent);
+  letter-spacing: 0.3px;
+  transition: opacity 0.2s ease;
+}
+
+.about-profile-link:hover {
+  opacity: 0.72;
+}
+
+/* About modal — desktop: centered, not bottom sheet */
+@media (min-width: 600px) {
+  .about-overlay {
+    align-items: center;
+  }
+
+  .about-modal {
+    border-radius: 20px;
+    max-height: 80svh;
+  }
+}
+
 /* Tablet portrait: larger canvas, still mobile layout (no side panel) */
 @media (min-width: 600px) and (max-width: 899px) {
   .canvas-area {
@@ -556,6 +710,7 @@
     position: absolute;
     top: 40px;
     right: 34px;
+    z-index: 20;
     display: flex;
     gap: 18px;
   }
