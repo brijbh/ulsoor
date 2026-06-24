@@ -13,9 +13,9 @@ import "./styles/theme.css";
 
 const SHAPES = [
   { id: "diamond", label: "Diamond" },
-  { id: "triangle", label: "Triangle" },
   { id: "circle", label: "Circle" },
   { id: "square", label: "Square" },
+  // { id: "triangle", label: "Triangle" }, // hidden pending aesthetic fix
 ];
 
 function ShapeSelector({ selectedShape, onSelectShape }) {
