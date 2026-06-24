@@ -3,7 +3,7 @@
 ## How to Use This File
 
 - Update this file at the START and END of every session.
-- If context limit is approaching (~2% left), stop dev work, update this file, commit, stop.
+- If context or usage or token limit is approaching (~2% left), stop dev work, update this file, commit, stop.
 - New sessions: read this file first. It is the ground truth for current state.
 - Branch for active development: `kolam-beta`
 
@@ -14,54 +14,50 @@
 **Branch:** `kolam-beta`
 
 **What actually works:**
-- Diamond grid kolam generation (ND=5 tested) via `alkolamEngine.js`
+- Diamond grid kolam generation via `alkolamEngine.js` — symmetric, varied per seed
+- σref-driven gate pre-assignment (0.35–0.75 range) — aesthetic variety per seed
+- Two-mirror symmetric FTS with 4-pass flip algorithm
+- 32-attempt convergence loop (up from 16)
 - Full animation engine (`animation.js`) with start/pause/reset/step/speed
 - 3-layer SVG rendering (completed / active / tip glow) in `KolamCanvas.jsx`
 - Light/dark theme toggle
 - Shape selector (diamond, triangle, circle, square) — UI exists, projection quality varies
-- Grid size slider in UI (range 3–15)
-- Mobile-first layout with one breakpoint at 760px (tablet/desktop)
+- Grid size slider in UI (range 3–15), styled
+- Seed state + Generate New button → unique kolam per press
+- Mobile-first layout: phone (<600px), tablet (600–899px), desktop (900px+)
 
-**What is broken or missing:**
-- No seed randomization → same kolam every time for same shape+grid (CRITICAL)
-- `grid-slider` CSS class is undefined → slider is unstyled
-- Debug red dots visible in production rendering
-- Dead nav links (`#home`, `#grids`, `#favorites`)
-- No tablet breakpoint — 768px tablets hit desktop layout immediately
-- `handleStep` passes empty segmentLengths array (minor bug)
-
-**Junk files to delete:**
-- `src/logic/alkolamEngine.js.new`
-- `src/logic/alkolamEngine.js.new2`
-- `src/logic/alkolamEngine.js.bak`
-- `src/App.css` (100% Vite default boilerplate, unused)
+**Needs visual audit (user to verify on device):**
+- Diamond ND=7, ND=9, ND=11 rendering quality
+- Tablet layout at 768px (portrait iPad)
+- Mobile Generate button placement and feel
+- Shape projections (triangle, circle, square) at various ND
 
 ---
 
 ## Active Session Tasks
 
-### PHASE 1 — Cleanup & Fix Fundamentals (kolam-beta branch)
+### PHASE 1 — Cleanup & Fix Fundamentals ✅ COMPLETE
 
-| # | Task | Status | Priority |
-|---|------|--------|----------|
-| 1 | Delete junk files (.new, .new2, .bak, App.css) | ⬜ TODO | High |
-| 2 | Remove debug red dots from KolamCanvas | ⬜ TODO | High |
-| 3 | Remove AlkolamSandbox.jsx (unused dev file) | ⬜ TODO | Medium |
-| 4 | Add seed state + Generate button → new kolam per press | ⬜ TODO | CRITICAL |
-| 5 | Add CSS for grid-slider (unstyled range input) | ⬜ TODO | High |
-| 6 | Fix handleStep empty segmentLengths bug | ⬜ TODO | Low |
-| 7 | Remove dead mobile nav links or wire them properly | ⬜ TODO | Medium |
-| 8 | Add tablet breakpoint (~900px) for mid-size screens | ⬜ TODO | High |
-| 9 | Commit + push after above complete | ⬜ TODO | High |
+| # | Task | Status |
+|---|------|--------|
+| 1 | Delete junk files (.new, .new2, .bak, App.css) | ✅ Done |
+| 2 | Remove debug red dots from KolamCanvas | ✅ Done |
+| 3 | Remove AlkolamSandbox.jsx (unused dev file) | ✅ Done |
+| 4 | Add seed state + Generate button → new kolam per press | ✅ Done |
+| 5 | Add CSS for grid-slider (unstyled range input) | ✅ Done |
+| 6 | Fix handleStep empty segmentLengths bug | ✅ Done |
+| 7 | Remove dead mobile nav links or wire them properly | ✅ Done |
+| 8 | Add tablet breakpoint (~900px) for mid-size screens | ✅ Done |
+| 9 | Commit + push | ✅ Done |
 
-### PHASE 2 — Pattern Quality (next session or later this session)
+### PHASE 2 — Pattern Quality ✅ COMPLETE
 
-| # | Task | Status | Priority |
-|---|------|--------|----------|
-| 10 | Enforce two-mirror symmetry in gate matrix | ⬜ TODO | High |
-| 11 | Increase FTS attempts for larger ND (currently 16, try 32–50) | ⬜ TODO | Medium |
-| 12 | Add σref variation per Generate press (vary aesthetic style) | ⬜ TODO | Medium |
-| 13 | Audit rendering quality for ND=7, ND=9, ND=11 | ⬜ TODO | High |
+| # | Task | Status |
+|---|------|--------|
+| 10 | Enforce two-mirror symmetry in gate matrix | ✅ Done |
+| 11 | Increase FTS attempts 16→32, 4-pass flip per attempt | ✅ Done |
+| 12 | Add σref variation per seed (0.35–0.75, sikku↔kambi) | ✅ Done |
+| 13 | Build verified clean; visual audit needed by user on device | ⚠️ User |
 
 ### PHASE 3 — Shape Generalization (future)
 
@@ -83,8 +79,13 @@
 - [x] Dot glow near leading edge
 - [x] Shape selector UI
 - [x] Light/dark theme toggle
-- [x] Mobile-first layout (single breakpoint at 760px)
+- [x] Mobile-first layout: phone / tablet (600px) / desktop (900px)
 - [x] Canonical projection (diamond algo → project for other shapes)
+- [x] Seed randomization + Generate New button
+- [x] Two-mirror symmetric FTS (4-pass flip, symmetric gate groups only)
+- [x] σref variation per seed — aesthetic variety (sikku ↔ kambi)
+- [x] MAX_MERGE_ATTEMPTS increased 16→32
+- [x] Grid slider styled, handleStep bug fixed, dead nav replaced
 
 ---
 
@@ -105,6 +106,7 @@
 ### 2026-06-24 — Session 2
 - Branch `kolam-beta` created
 - Full codebase audit completed
-- tasks.md rewritten with current ground truth
-- Immediate action list identified (Phase 1, tasks 1–9)
-- Awaiting confirmation to proceed with Phase 1 implementation
+- Phase 1 complete: cleanup, seed/Generate, CSS fixes, tablet breakpoint
+- Phase 2 complete: symmetric FTS, σref variation, 32 attempts
+- Build passes clean; visual audit on device needed by user
+- Next: Phase 3 (shape generalization) or visual audit feedback first
