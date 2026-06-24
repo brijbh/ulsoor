@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 
 import Header from "./components/Header";
 import KolamCanvas from "./components/KolamCanvas";
@@ -13,9 +13,9 @@ import "./styles/theme.css";
 
 const SHAPES = [
   { id: "diamond", label: "Diamond" },
-  { id: "triangle", label: "Triangle" },
   { id: "circle", label: "Circle" },
   { id: "square", label: "Square" },
+  // { id: "triangle", label: "Triangle" }, // hidden pending aesthetic fix
 ];
 
 function ShapeSelector({ selectedShape, onSelectShape }) {
@@ -85,9 +85,14 @@ function getRenderedPattern(dots) {
   return rows.map((row) => row.count);
 }
 
+function randomSeed() {
+  return Math.floor(Math.random() * 0xffffff);
+}
+
 export default function App() {
   const [selectedShape, setSelectedShape] = useState("diamond");
   const [gridSize, setGridSize] = useState(5);
+  const [seed, setSeed] = useState(() => randomSeed());
 
   const shape = SHAPES.find(({ id }) => id === selectedShape) ?? SHAPES[0];
   
@@ -117,19 +122,21 @@ export default function App() {
   };
 
   const kolam = useMemo(() => {
-    return buildKolam({ nd: gridSize, shapeId: shape.id });
-  }, [shape.id, gridSize]);
+    return buildKolam({ nd: gridSize, shapeId: shape.id, seed });
+  }, [shape.id, gridSize, seed]);
   const pattern = shape.id === "diamond"
     ? getPattern(shape.id, gridSize)
     : getRenderedPattern(kolam.dots);
   const gridLabel = pattern.join(" - ");
 
   const animationRef = useRef(null);
+  const segmentLengthsRef = useRef([]);
   const [progress, setProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasAnimationStarted, setHasAnimationStarted] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [theme, setTheme] = useState("light");
+  const [showAbout, setShowAbout] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -178,23 +185,30 @@ export default function App() {
 
   const handleStep = () => {
     if (animationRef.current) {
-      animationRef.current.stepForward(kolam.segments, [], kolam.dots);
+      animationRef.current.stepForward(kolam.segments, segmentLengthsRef.current, kolam.dots);
       setHasAnimationStarted(true);
     }
   };
 
-  const handleSelectShape = (shapeId) => {
-    setSelectedShape(shapeId);
+  const resetAnimation = useCallback(() => {
     animationRef.current?.reset();
     setIsPlaying(false);
     setHasAnimationStarted(false);
+  }, []);
+
+  const handleGenerate = useCallback(() => {
+    setSeed(randomSeed());
+    resetAnimation();
+  }, [resetAnimation]);
+
+  const handleSelectShape = (shapeId) => {
+    setSelectedShape(shapeId);
+    resetAnimation();
   };
 
   const handleSelectGridSize = (size) => {
     setGridSize(size);
-    animationRef.current?.reset();
-    setIsPlaying(false);
-    setHasAnimationStarted(false);
+    resetAnimation();
   };
 
   return (
@@ -214,17 +228,22 @@ export default function App() {
           <p className="section-label">Pattern</p>
           <p className="pattern-label">{gridLabel}</p>
         </div>
+        <button className="generate-button" type="button" onClick={handleGenerate}>
+          Generate New
+        </button>
         <p className="side-note">A kolam a day,<br />brings peace<br />in every way.</p>
+        <button className="about-link" type="button" onClick={() => setShowAbout(true)}>
+          About
+        </button>
       </aside>
       <main className="canvas-area" aria-label="Kolam drawing area">
         <div className="desktop-tools" aria-label="Display options">
-          <button className="icon-button" type="button" aria-label="Theme" onClick={toggleTheme}>
+          <button className="icon-button" type="button" aria-label="Toggle theme" onClick={toggleTheme}>
             {theme === "light" ? "☼" : "☾"}
           </button>
-          <button className="icon-button" type="button" aria-label="Settings">⚙</button>
         </div>
         <div className="mobile-topbar" aria-label="Mobile header">
-          <button className="icon-button" type="button" aria-label="Menu">☰</button>
+          <button className="icon-button" type="button" aria-label="About" onClick={() => setShowAbout(true)}>ⓘ</button>
           <Header />
           <button className="icon-button" type="button" aria-label="Theme" onClick={toggleTheme}>
             {theme === "light" ? "☼" : "☾"}
@@ -238,12 +257,7 @@ export default function App() {
           <GridSelector
             selectedShape={selectedShape}
             gridSize={gridSize}
-            onSelectGrid={(size) => {
-              setGridSize(size);
-              animationRef.current?.reset();
-              setIsPlaying(false);
-              setHasAnimationStarted(false);
-            }}
+            onSelectGrid={handleSelectGridSize}
           />
           <p className="mobile-pattern-label">Grid: {gridLabel}</p>
         </div>
@@ -254,6 +268,7 @@ export default function App() {
           segments={kolam.segments}
           progress={progress}
           showHint={!hasAnimationStarted}
+          onSegmentLengths={(lengths) => { segmentLengthsRef.current = lengths; }}
         />
 
         <Controls
@@ -267,21 +282,58 @@ export default function App() {
           onSpeedChange={handleSpeedChange}
         />
 
-        <nav className="mobile-nav" aria-label="Primary">
-          <a className="mobile-nav-item is-active" href="#home">
-            <span aria-hidden="true">⌂</span>
-            <span>Home</span>
-          </a>
-          <a className="mobile-nav-item" href="#grids">
-            <span aria-hidden="true">⠿</span>
-            <span>Grids</span>
-          </a>
-          <a className="mobile-nav-item" href="#favorites">
-            <span aria-hidden="true">♡</span>
-            <span>Favorites</span>
-          </a>
-        </nav>
+        <div className="mobile-nav">
+          <button className="generate-button" type="button" onClick={handleGenerate}>
+            Generate New
+          </button>
+        </div>
       </main>
+
+      {showAbout && (
+        <div className="about-overlay" role="dialog" aria-modal="true" aria-label="About Kolampodu" onClick={() => setShowAbout(false)}>
+          <div className="about-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="about-close" type="button" aria-label="Close" onClick={() => setShowAbout(false)}>✕</button>
+
+            <p className="about-app-name">Kolampodu</p>
+            <p className="about-tagline">A guided kolam drawing experience</p>
+
+            <p className="about-body">
+              Kolam is a 5,000-year-old South Indian art form, drawn with rice flour
+              around a grid of dots called <em>pullis</em>. The most revered form is the
+              one-stroke kolam — the entire pattern drawn in a single unbroken line.
+            </p>
+            <p className="about-body">
+              Every kolam here is algorithmically generated — gate matrices, symmetric
+              path evolution, and aesthetic parameters from a peer-reviewed 2026 paper.
+              No two patterns are the same.
+            </p>
+
+            <ul className="about-features">
+              <li>▶ Play to watch it draw itself</li>
+              <li>⟳ Generate New for a fresh pattern</li>
+              <li>Slow / Normal / Fast drawing speed</li>
+              <li>Light and dark theme</li>
+            </ul>
+
+            <div className="about-footer">
+              <p className="about-credit">
+                An ode to an ancient wisdom — kolam wove sacred geometry into rice
+                flour at the doorstep, every single day, for 5,000 years. It taught
+                us that mathematics is not a discipline. It is devotion, drawn at
+                the threshold.
+              </p>
+              <a
+                className="about-profile-link"
+                href="https://brijbh.github.io/home/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                brijbh.github.io/home →
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

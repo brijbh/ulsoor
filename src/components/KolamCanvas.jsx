@@ -19,7 +19,7 @@ function getSafePathLength(pathElement) {
   }
 }
 
-export default function KolamCanvas({ dots = [], path, segments, progress, showHint }) {
+export default function KolamCanvas({ dots = [], path, segments, progress, showHint, onSegmentLengths }) {
   const pathRef = useRef(null);
   const segmentRefs = useRef([]);
   const [pathLength, setPathLength] = useState(0);
@@ -52,15 +52,15 @@ export default function KolamCanvas({ dots = [], path, segments, progress, showH
     drawState.tipStartLength,
     drawState.tipEndLength,
   );
-  const strokeMaterial = getStrokeMaterial(progress, drawState.activeProgress);
+  const strokeMaterial = getStrokeMaterial(progress);
 
   useLayoutEffect(() => {
     segmentRefs.current = segmentRefs.current.slice(0, segments.length);
 
     setPathLength(getSafePathLength(pathRef.current));
-    setSegmentLengths(
-      segments.map((_, index) => getSafePathLength(segmentRefs.current[index])),
-    );
+    const lengths = segments.map((_, index) => getSafePathLength(segmentRefs.current[index]));
+    setSegmentLengths(lengths);
+    onSegmentLengths?.(lengths);
   }, [path, segments]);
 
   return (
@@ -123,17 +123,6 @@ export default function KolamCanvas({ dots = [], path, segments, progress, showH
               fill="none"
               stroke="transparent"
             />
-          ))}
-          {segments.flatMap((segment) => (
-            segment.debugPoints?.map((point, index) => (
-              <circle
-                key={`${segment.id}-debug-${index}`}
-                cx={point.x}
-                cy={point.y}
-                r={2}
-                fill="red"
-              />
-            )) ?? []
           ))}
         </g>
       </svg>

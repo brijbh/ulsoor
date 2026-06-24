@@ -2,7 +2,7 @@ const OPEN = 1;
 const CLOSED = 0;
 const DEFAULT_ND = 5;
 const DEFAULT_SPACING = 60;
-const MAX_MERGE_ATTEMPTS = 16;
+const MAX_MERGE_ATTEMPTS = 32;
 const SQRT_3_OVER_2 = Math.sqrt(3) / 2;
 
 const SHAPE_CONFIGS = {
@@ -180,18 +180,10 @@ function getMutableGateGroups(nd, shapeId) {
   return groups;
 }
 
-function getMutableGates(nd, shapeId) {
-  const gates = [];
-
-  for (let i = 1; i < nd; i += 1) {
-    for (let j = 1; j < nd; j += 1) {
-      if (isGateMutable(i, j, nd, shapeId)) {
-        gates.push([[i, j]]);
-      }
-    }
+function assignGates(gates, nd, shapeId, random, sigmaRef) {
+  for (const cells of getMutableGateGroups(nd, shapeId)) {
+    setGateCells(gates, cells, random() < sigmaRef ? OPEN : CLOSED);
   }
-
-  return gates;
 }
 
 function makeState(icg, jcg, ce) {
@@ -332,21 +324,22 @@ function shuffle(items, random) {
 
 function mergeLoops(gates, nd, shapeId, random) {
   let activeLoops = getActiveLoops(gates, nd, shapeId);
+  const groups = getMutableGateGroups(nd, shapeId);
 
-  for (const groups of [
-    getMutableGateGroups(nd, shapeId),
-    getMutableGates(nd, shapeId),
-  ]) {
+  for (let pass = 0; pass < 4 && activeLoops.length > 1; pass += 1) {
     for (const cells of shuffle(groups, random)) {
       if (activeLoops.length <= 1) break;
 
-      setGateCells(gates, cells, OPEN);
+      const prevValue = gates[cells[0][0]][cells[0][1]];
+      const nextValue = prevValue === CLOSED ? OPEN : CLOSED;
+
+      setGateCells(gates, cells, nextValue);
       const nextLoops = getActiveLoops(gates, nd, shapeId);
 
       if (nextLoops.length > 0 && nextLoops.length < activeLoops.length) {
         activeLoops = nextLoops;
       } else {
-        setGateCells(gates, cells, CLOSED);
+        setGateCells(gates, cells, prevValue);
       }
     }
   }
@@ -405,13 +398,17 @@ function projectKolamPoint(point, shapeId, nd, spacing) {
   }
 
   if (shapeId === "circle") {
-    const radius = Math.max(Math.abs(sx), Math.abs(sy)) * extent;
+    const rawRadius = Math.sqrt(sx * sx + sy * sy);
+    const radius = (0.75 * rawRadius + 0.25 * Math.max(Math.abs(sx), Math.abs(sy))) * extent;
     const angle = Math.atan2(sy, sx);
+
+    const smoothFactor = 1 + 0.03 * Math.sin(3 * angle) * (1 - rawRadius);
+    const finalRadius = radius * smoothFactor;
 
     return {
       ...point,
-      x: Math.cos(angle) * radius,
-      y: Math.sin(angle) * radius,
+      x: Math.cos(angle) * finalRadius,
+      y: Math.sin(angle) * finalRadius,
     };
   }
 
@@ -421,10 +418,25 @@ function projectKolamPoint(point, shapeId, nd, spacing) {
     const lateral = sy - sx;
     const widthScale = 0.34 + vertical * 0.6;
 
+    const rawX = lateral * extent * widthScale;
+    const rawY = (vertical - 0.5) * height;
+
+    const normalizedY = Math.max(0, Math.min(1, rawY / height));
+    const baseWidth = widthScale * extent;
+    const maxLateral = baseWidth * (1 - normalizedY);
+    const clampedX = Math.max(-maxLateral, Math.min(maxLateral, rawX));
+    const lateralRatio = maxLateral > 0 ? Math.abs(clampedX) / maxLateral : 0;
+
+    const curveAmount = Math.sin(lateralRatio * Math.PI) * (extent * 0.15 * (1 - normalizedY * 0.8));
+    const curvedX = clampedX > 0 ? clampedX - curveAmount : clampedX + curveAmount;
+
+    const yCurve = Math.sin(normalizedY * Math.PI) * extent * 0.08 * lateralRatio;
+    const finalY = rawY - yCurve;
+
     return {
       ...point,
-      x: lateral * extent * widthScale,
-      y: (vertical - 0.5) * height,
+      x: curvedX,
+      y: Math.max(0, finalY),
     };
   }
 
@@ -505,15 +517,22 @@ export function buildKolam({
   shapeId = "diamond",
   spacing = DEFAULT_SPACING,
   seed = "kolampodu",
+  sigmaRef,
 } = {}) {
   const safeNd = Math.max(3, Math.floor(nd));
   const algorithmShapeId = "diamond";
+
+  // Derive σref from seed when not provided — controls aesthetic style
+  // 0.35–0.45 → sikku (dense/curved), 0.55–0.75 → kambi (open/linear)
+  const sigmaRandom = createRandom(`${seed}:sigma`);
+  const effectiveSigmaRef = sigmaRef ?? (0.35 + sigmaRandom() * 0.4);
 
   let best = null;
 
   for (let attempt = 0; attempt < MAX_MERGE_ATTEMPTS; attempt += 1) {
     const random = createRandom(`${seed}:${algorithmShapeId}:${safeNd}:${attempt}`);
     const gates = resetGateMatrix(safeNd);
+    assignGates(gates, safeNd, algorithmShapeId, random, effectiveSigmaRef);
     const activeLoops = mergeLoops(gates, safeNd, algorithmShapeId, random);
     const loop = chooseBestLoop(activeLoops);
 
@@ -548,6 +567,7 @@ export function buildKolam({
     diagnostics: {
       activeDots: dots.length,
       activeLoops: best?.loopCount ?? 0,
+      sigmaRef: effectiveSigmaRef,
       projection: shapeId === algorithmShapeId ? "algorithm" : `${shapeId}-algorithm-projection`,
     },
   };
