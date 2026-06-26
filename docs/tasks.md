@@ -9,7 +9,7 @@
 
 ---
 
-## Current State (as of 2026-06-24, Session 4)
+## Current State (as of 2026-06-26, Session 5)
 
 **Branch:** `main` — deployed at `https://ulsoor.vercel.app`
 
@@ -20,19 +20,21 @@
 - 3-layer SVG rendering (completed / active / tip glow)
 - Light/dark theme toggle (☼/☾), CSS custom properties throughout
 - Mobile-first layout fully redesigned — dark dock pattern
-- Step by Step teaching mode (tap → to advance one segment at a time)
-- Generate New → unique kolam every press
-- About modal with How to Use help section (7 control explanations)
+- Learn (step-by-step) mode: pause then tap Learn to advance one stroke at a time
+- Generate New Pattern → unique kolam every press
+- About modal with How to Use help section (7 control explanations, fully up to date)
 - OG meta tags: absolute URL, 1200×630 JPEG, correct description length
 - Custom favicon.svg (kolam icon, dark red bg, orange path, white dots)
 - Tiny wordmark (favicon + KOLAMPODU) at top of canvas on mobile
 
 **Mobile dock (current design):**
-- Row 1: shape buttons (◇ ○ □) | grid slider + size | ☼/☾ | ⓘ about | ⟳ New
-- Row 2: Slow · 1× · Fast · Step by Step speed pills | ↺ reset | ▶/Ⅱ/→ play button
+- Row 1: shape buttons (◇ ○ □) | − grid + stepper | New Pattern (flex:1) | ⏸ (playing only) | ▶/■
+- Row 2: Slow · 1× · Fast (flex pills) | Learn | ☼ | ⓘ
 - Light theme → dark dock (#191513). Dark theme → bright cream dock (#ede0c8)
-- Auto-play modes: dock fades on play (immersive), tap canvas to restore
-- Step by Step: dock stays fully visible, play btn becomes →
+- is-playing: non-playback elements fade to 18%; ⏸ + ■ stay bright; tap canvas to pause
+- is-paused: same fade; ▶ dims to 45%; Learn glows orange (is-active) as the focal action
+- isStepMode and isImmersive states removed — step mode emerges from pause state via CSS classes
+- System-ui font throughout; Georgia only in .about-credit prose
 
 **Triangle shape:** Hidden from UI (`SHAPES` array comment) — aesthetic quality poor, deferred to v1.3
 
@@ -42,26 +44,27 @@
 
 Three focus areas in order:
 
-1. **Triangle shape fix (v1.3)** — currently hidden from UI. The projected triangle kolam has straight rail-like sides instead of flowing curves. Needs aesthetic investigation — likely a projection or gate-traversal issue specific to triangular lattice.
+1. **Gallery (v1.2)** — Save patterns to `localStorage` as `{seed, shapeId, nd}` (~50 bytes each). Gallery view renders SVG thumbnails on-demand from saved seeds (no images stored). Heart/bookmark button on the canvas to save.
 
-2. **Gallery (v1.2)** — Save patterns to `localStorage` as `{seed, shapeId, nd}` (~50 bytes each). Gallery view renders SVG thumbnails on-demand from saved seeds (no images stored). Heart/bookmark button on the canvas to save.
+2. **Share (v1.2)** — Copy-to-clipboard URL: `ulsoor.vercel.app/?seed=X&nd=Y&shape=Z`. Anyone who opens the link sees the exact same pattern. No auth needed.
 
-3. **Share (v1.2)** — Copy-to-clipboard URL: `ulsoor.vercel.app/?seed=X&nd=Y&shape=Z`. Anyone who opens the link sees the exact same pattern. No auth needed.
+3. **Triangle shape fix (v1.3)** — currently hidden from UI. The projected triangle kolam has straight rail-like sides instead of flowing curves. Needs aesthetic investigation — likely a projection or gate-traversal issue specific to triangular lattice.
 
 ---
 
 ## Pending / Next Up
 
-### v1.1 — Mobile Polish (in progress)
+### v1.1 — Mobile Polish (complete)
 | # | Task | Status |
 |---|------|--------|
 | 1 | Mobile layout redesign — dark dock | ✅ Done |
-| 2 | Step by Step teaching mode | ✅ Done |
+| 2 | Step by Step / Learn teaching mode | ✅ Done |
 | 3 | Dark theme dock flips to bright cream | ✅ Done |
 | 4 | Help section in About modal | ✅ Done |
 | 5 | Wordmark at top of canvas | ✅ Done |
-| 6 | User visual audit on device — Vercel | 🔲 User to review |
-| 7 | Any further mobile tweaks from audit | 🔲 Pending feedback |
+| 6 | Grid slider → +/− stepper buttons | ✅ Done |
+| 7 | Dock redesign: Learn pill, New Pattern, selective fade | ✅ Done |
+| 8 | System-ui font, icon visibility, touch target sizing | ✅ Done |
 
 ### v1.2 — Gallery & Share (planned, not started)
 | # | Task | Status |
@@ -135,8 +138,9 @@ Three focus areas in order:
 - Two-mirror symmetry: `G[i,j] = G[j,i] = G[ND-i,ND-j]`
 - σref ≈ 0.6 balanced; >0.7 kambi (open/linear); <0.5 sikku (curvy/dense)
 - Target: `Np = Npx = 2(ND²+1)` for one-stroke kolam
-- `isImmersive` state in App.jsx: true on auto-play, false on pause/reset/step mode/canvas tap
-- `isStepMode` state: set by `handleSpeedSelect("step")`, cleared on numeric speed select
+- Dock state: CSS classes `.is-playing` / `.is-paused` on `.mobile-dock` — no isImmersive/isStepMode state
+- Learn button is-active when `hasAnimationStarted && !isPlaying && progress < 1`
+- ⏸ is conditionally rendered (only when isPlaying); New Pattern is flex:1 to absorb the space
 - Desktop: side panel + Controls component. Mobile: dark dock replaces both.
 - Breakpoints: mobile default, tablet ≥600px, desktop ≥900px
 
@@ -167,3 +171,18 @@ Three focus areas in order:
 - Wordmark at top of canvas
 - Pushed to main → Vercel live
 - Gallery feature (v1.2) discussed, design decided, not yet implemented
+
+### 2026-06-26 — Session 5
+- Grid slider replaced with +/− stepper buttons (accessibility, dexterity)
+- ☼/ⓘ icons enlarged, opacity raised, visible background added
+- Georgia serif removed from all UI; system-ui everywhere (Georgia kept in .about-credit)
+- Dock restructured: play controls moved to row 1, theme/about to row 2
+- Button model simplified: ▶/■ primary toggle, ⏸ secondary (conditional, playing only)
+- isStepMode and isImmersive states removed entirely
+- Step-by-step replaced by contextual Learn pill in row 2
+- Learn glows orange when paused (is-active); fades when playing
+- Selective fade: is-playing/is-paused CSS classes replace full-dock opacity
+- Canvas tap while playing triggers pause
+- All dock elements resized up; New Pattern + speed pills fill space with flex:1
+- About modal help updated to match all new controls
+- Pushed to main → Vercel live (commit a15825f)
