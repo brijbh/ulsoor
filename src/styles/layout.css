@@ -15,7 +15,6 @@
   display: inline-flex;
   align-items: center;
   gap: 14px;
-  font-family: Georgia, "Times New Roman", serif;
   font-size: 18px;
   font-weight: 700;
   line-height: 1;
@@ -108,7 +107,6 @@
 }
 
 .grid-size-label {
-  font-family: Georgia, serif;
   font-size: 13px;
   font-weight: 700;
   color: var(--accent);
@@ -127,7 +125,6 @@
   box-shadow: 0 4px 12px rgba(70, 49, 29, 0.06);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: Georgia, serif;
   font-weight: 700;
   font-size: 14px;
 }
@@ -256,7 +253,6 @@
 .side-note {
   margin-top: auto;
   color: var(--muted);
-  font-family: Georgia, "Times New Roman", serif;
   font-size: 17px;
   line-height: 1.35;
   text-align: center;
@@ -422,7 +418,6 @@
   border-radius: 14px;
   background: linear-gradient(145deg, var(--accent), var(--accent-dark));
   color: #fffaf1;
-  font-family: Georgia, "Times New Roman", serif;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.4px;
@@ -463,7 +458,6 @@
 }
 
 .wordmark-text {
-  font-family: Georgia, serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 2.5px;
@@ -488,18 +482,50 @@
   transition: opacity 0.4s ease;
 }
 
-.mobile-dock.is-immersive {
-  opacity: 0.08;
+/* Smooth transitions on all dock interactive elements */
+.dock-shapes,
+.dock-grid-control,
+.dock-new-btn,
+.dock-speeds,
+.dock-icon-btn,
+.dock-ctrl-btn,
+.dock-ctrl-primary,
+.dock-learn-btn {
+  transition: opacity 0.3s ease;
+}
+
+/* Playing: fade everything except ⏸ and ■ */
+.mobile-dock.is-playing .dock-shapes,
+.mobile-dock.is-playing .dock-grid-control,
+.mobile-dock.is-playing .dock-new-btn,
+.mobile-dock.is-playing .dock-speeds,
+.mobile-dock.is-playing .dock-icon-btn,
+.mobile-dock.is-playing .dock-learn-btn {
+  opacity: 0.18;
   pointer-events: none;
+}
+
+/* Paused: fade same elements, dim ▶ — Learn glows as the star */
+.mobile-dock.is-paused .dock-shapes,
+.mobile-dock.is-paused .dock-grid-control,
+.mobile-dock.is-paused .dock-new-btn,
+.mobile-dock.is-paused .dock-speeds,
+.mobile-dock.is-paused .dock-icon-btn {
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.mobile-dock.is-paused .dock-ctrl-primary {
+  opacity: 0.45;
 }
 
 .dock-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
 }
 
-/* --- Row 1: shapes, grid, icons, generate --- */
+/* --- Row 1: shapes, grid stepper, icons, generate --- */
 
 .dock-shapes {
   display: flex;
@@ -508,12 +534,12 @@
 }
 
 .dock-shape-btn {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.11);
-  border-radius: 9px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.05);
   color: rgba(245, 237, 228, 0.55);
   cursor: pointer;
@@ -534,71 +560,82 @@
   flex-shrink: 0;
 }
 
+/* Grid stepper: − label + */
 .dock-grid-control {
-  flex: 1;
-  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
-.dock-grid-control .grid-slider {
-  flex: 1;
-  min-width: 0;
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.dock-grid-control .grid-slider::-webkit-slider-thumb {
-  background: #ff7517;
-  border-color: #191513;
-}
-
-.dock-grid-control .grid-slider::-moz-range-thumb {
-  background: #ff7517;
-  border-color: #191513;
-}
-
-.dock-grid-label {
-  font-size: 10px;
-  font-family: Georgia, serif;
-  font-weight: 700;
-  color: rgba(245, 237, 228, 0.45);
-  white-space: nowrap;
-  min-width: 22px;
-  text-align: right;
-}
-
-.dock-icon-btn {
-  width: 30px;
-  height: 30px;
-  border: none;
-  background: transparent;
-  color: rgba(245, 237, 228, 0.45);
+.dock-grid-stepper-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(245, 237, 228, 0.85);
   font-size: 17px;
+  line-height: 1;
   cursor: pointer;
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  transition: color 0.15s ease;
+  transition: background 0.15s ease;
+}
+
+.dock-grid-stepper-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.dock-grid-stepper-btn:active:not(:disabled) {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.dock-grid-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(245, 237, 228, 0.82);
+  white-space: nowrap;
+  min-width: 28px;
+  text-align: center;
+}
+
+.dock-icon-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  color: rgba(245, 237, 228, 0.82);
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
 .dock-icon-btn:active {
-  color: rgba(245, 237, 228, 0.85);
+  background: rgba(255, 255, 255, 0.18);
+  color: rgba(245, 237, 228, 0.95);
 }
 
 .dock-new-btn {
+  flex: 1;
+  min-width: 0;
   height: 32px;
-  padding: 0 11px;
+  padding: 0 8px;
   border: 1px solid rgba(255, 117, 23, 0.38);
   border-radius: 16px;
   background: rgba(255, 117, 23, 0.10);
   color: #ff9940;
-  font-family: Georgia, "Times New Roman", serif;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
-  flex-shrink: 0;
+  text-align: center;
   transition: background 0.15s ease;
 }
 
@@ -617,17 +654,17 @@
 }
 
 .dock-speed-pill {
+  flex: 1;
   height: 30px;
-  padding: 0 9px;
+  padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 15px;
   background: rgba(255, 255, 255, 0.04);
   color: rgba(245, 237, 228, 0.45);
   font-size: 11px;
-  white-space: nowrap;
   cursor: pointer;
   transition: all 0.15s ease;
-  flex-shrink: 0;
+  text-align: center;
 }
 
 .dock-speed-pill.is-active {
@@ -636,30 +673,9 @@
   color: #f5ede4;
 }
 
-/* Step by Step — visually distinct, teaching-mode emphasis */
-.dock-speed-step {
-  border-color: rgba(255, 117, 23, 0.28);
-  color: rgba(255, 153, 64, 0.65);
-  font-size: 10.5px;
-}
-
-.dock-speed-step.is-active {
-  background: rgba(255, 117, 23, 0.16);
-  border-color: rgba(255, 117, 23, 0.55);
-  color: #ff9940;
-  box-shadow: 0 0 10px rgba(255, 117, 23, 0.18);
-}
-
-.dock-playcontrols {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  flex-shrink: 0;
-}
-
 .dock-ctrl-btn {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -693,6 +709,33 @@
 .dock-ctrl-primary:active:not(:disabled) {
   transform: scale(0.95);
   background: #e0650f;
+}
+
+/* Learn button — step-by-step, lives in row 2 */
+.dock-learn-btn {
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 117, 23, 0.28);
+  border-radius: 15px;
+  background: rgba(255, 117, 23, 0.06);
+  color: rgba(255, 153, 64, 0.50);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dock-learn-btn.is-active {
+  background: rgba(255, 117, 23, 0.20);
+  border-color: rgba(255, 117, 23, 0.65);
+  color: #ff9940;
+  box-shadow: 0 0 14px rgba(255, 117, 23, 0.28);
+}
+
+.dock-learn-btn:disabled {
+  opacity: 0.22;
+  cursor: default;
 }
 
 .desktop-tools {
@@ -767,7 +810,6 @@
 }
 
 .about-app-name {
-  font-family: Georgia, "Times New Roman", serif;
   font-size: 22px;
   font-weight: 700;
   color: var(--text);
@@ -849,7 +891,6 @@
 }
 
 .help-key {
-  font-family: Georgia, "Times New Roman", serif;
   font-size: 12px;
   font-weight: 700;
   color: var(--accent);
@@ -912,26 +953,23 @@
   background: rgba(0, 0, 0, 0.10);
 }
 
-:root[data-theme="dark"] .dock-grid-control .grid-slider {
-  background: rgba(0, 0, 0, 0.12);
+:root[data-theme="dark"] .dock-grid-stepper-btn {
+  border-color: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(25, 21, 19, 0.78);
 }
 
-:root[data-theme="dark"] .dock-grid-control .grid-slider::-webkit-slider-thumb {
-  background: #70451f;
-  border-color: #ede0c8;
-}
-
-:root[data-theme="dark"] .dock-grid-control .grid-slider::-moz-range-thumb {
-  background: #70451f;
-  border-color: #ede0c8;
+:root[data-theme="dark"] .dock-grid-stepper-btn:active:not(:disabled) {
+  background: rgba(0, 0, 0, 0.14);
 }
 
 :root[data-theme="dark"] .dock-grid-label {
-  color: rgba(25, 21, 19, 0.38);
+  color: rgba(25, 21, 19, 0.78);
 }
 
 :root[data-theme="dark"] .dock-icon-btn {
-  color: rgba(25, 21, 19, 0.40);
+  background: rgba(0, 0, 0, 0.07);
+  color: rgba(25, 21, 19, 0.78);
 }
 
 :root[data-theme="dark"] .dock-new-btn {
@@ -952,18 +990,6 @@
   color: #191513;
 }
 
-:root[data-theme="dark"] .dock-speed-step {
-  border-color: rgba(112, 69, 31, 0.28);
-  color: rgba(112, 69, 31, 0.55);
-}
-
-:root[data-theme="dark"] .dock-speed-step.is-active {
-  background: rgba(112, 69, 31, 0.12);
-  border-color: rgba(112, 69, 31, 0.55);
-  color: #70451f;
-  box-shadow: 0 0 10px rgba(112, 69, 31, 0.14);
-}
-
 :root[data-theme="dark"] .dock-ctrl-btn {
   border-color: rgba(0, 0, 0, 0.11);
   background: rgba(0, 0, 0, 0.04);
@@ -977,6 +1003,19 @@
 
 :root[data-theme="dark"] .dock-ctrl-primary:active:not(:disabled) {
   background: #5a3516;
+}
+
+:root[data-theme="dark"] .dock-learn-btn {
+  border-color: rgba(112, 69, 31, 0.22);
+  background: rgba(112, 69, 31, 0.05);
+  color: rgba(112, 69, 31, 0.45);
+}
+
+:root[data-theme="dark"] .dock-learn-btn.is-active {
+  background: rgba(112, 69, 31, 0.18);
+  border-color: rgba(112, 69, 31, 0.60);
+  color: #8c5a28;
+  box-shadow: 0 0 14px rgba(112, 69, 31, 0.22);
 }
 
 /* About modal — desktop: centered, not bottom sheet */

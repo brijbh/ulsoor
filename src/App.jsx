@@ -137,8 +137,6 @@ export default function App() {
   const [speed, setSpeed] = useState(1);
   const [theme, setTheme] = useState("light");
   const [showAbout, setShowAbout] = useState(false);
-  const [isImmersive, setIsImmersive] = useState(false);
-  const [isStepMode, setIsStepMode] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -151,7 +149,7 @@ export default function App() {
   useEffect(() => {
     animationRef.current = createKolamAnimation({
       onProgress: setProgress,
-      onComplete: () => { setIsPlaying(false); setIsImmersive(false); },
+      onComplete: () => { setIsPlaying(false); },
     });
 
     return () => {
@@ -165,18 +163,8 @@ export default function App() {
   };
 
   const handleSpeedSelect = (value) => {
-    if (value === "step") {
-      setIsStepMode(true);
-      if (isPlaying) {
-        animationRef.current?.pause();
-        setIsPlaying(false);
-        setIsImmersive(false);
-      }
-    } else {
-      setIsStepMode(false);
-      setSpeed(value);
-      animationRef.current?.updateOptions({ speedMultiplier: value });
-    }
+    setSpeed(value);
+    animationRef.current?.updateOptions({ speedMultiplier: value });
   };
 
   const handlePlay = () => {
@@ -187,20 +175,17 @@ export default function App() {
     animationRef.current?.start();
     setIsPlaying(true);
     setHasAnimationStarted(true);
-    if (!isStepMode) setIsImmersive(true);
   };
 
   const handlePause = () => {
     animationRef.current?.pause();
     setIsPlaying(false);
-    setIsImmersive(false);
   };
 
   const handleReset = () => {
     animationRef.current?.reset();
     setIsPlaying(false);
     setHasAnimationStarted(false);
-    setIsImmersive(false);
   };
 
   const handleStep = () => {
@@ -214,7 +199,6 @@ export default function App() {
     animationRef.current?.reset();
     setIsPlaying(false);
     setHasAnimationStarted(false);
-    setIsImmersive(false);
   }, []);
 
   const handleGenerate = useCallback(() => {
@@ -270,7 +254,7 @@ export default function App() {
           progress={progress}
           showHint={!hasAnimationStarted}
           onSegmentLengths={(lengths) => { segmentLengthsRef.current = lengths; }}
-          onCanvasClick={() => { if (isImmersive) setIsImmersive(false); }}
+          onCanvasClick={() => { if (isPlaying) handlePause(); }}
         />
 
         <Controls
@@ -291,8 +275,8 @@ export default function App() {
         </div>
 
         {/* Dark control dock */}
-        <div className={`mobile-dock${isImmersive ? " is-immersive" : ""}`} aria-label="Controls">
-          {/* Row 1 — shape, grid, icons, generate */}
+        <div className={`mobile-dock${isPlaying ? " is-playing" : (hasAnimationStarted && progress < 1) ? " is-paused" : ""}`} aria-label="Controls">
+          {/* Row 1 — shape, grid, generate, play controls */}
           <div className="dock-row">
             <div className="dock-shapes">
               {SHAPES.map((s) => (
@@ -308,92 +292,63 @@ export default function App() {
                 </button>
               ))}
             </div>
-            <div className="dock-sep" aria-hidden="true" />
             <div className="dock-grid-control">
-              <input
-                type="range"
-                min="3"
-                max="15"
-                value={gridSize}
-                className="grid-slider"
-                onChange={(e) => handleSelectGridSize(parseInt(e.target.value))}
-                aria-label="Grid size"
-              />
+              <button
+                className="dock-grid-stepper-btn"
+                type="button"
+                aria-label="Decrease grid size"
+                disabled={gridSize <= 3}
+                onClick={() => handleSelectGridSize(Math.max(3, gridSize - 1))}
+              >−</button>
               <span className="dock-grid-label">{gridSize}×{gridSize}</span>
+              <button
+                className="dock-grid-stepper-btn"
+                type="button"
+                aria-label="Increase grid size"
+                disabled={gridSize >= 15}
+                onClick={() => handleSelectGridSize(Math.min(15, gridSize + 1))}
+              >+</button>
             </div>
-            <div className="dock-sep" aria-hidden="true" />
-            <button className="dock-icon-btn" type="button" aria-label="Toggle theme" onClick={toggleTheme}>
-              {theme === "light" ? "☼" : "☾"}
-            </button>
-            <button className="dock-icon-btn" type="button" aria-label="About" onClick={() => setShowAbout(true)}>
-              ⓘ
-            </button>
             <button className="dock-new-btn" type="button" aria-label="Generate new pattern" onClick={handleGenerate}>
-              ⟳ New
+              New Pattern
             </button>
+            {isPlaying && (
+              <button className="dock-ctrl-btn" type="button" aria-label="Pause" onClick={handlePause}>⏸</button>
+            )}
+            {isPlaying ? (
+              <button className="dock-ctrl-btn dock-ctrl-primary" type="button" aria-label="Stop" onClick={handleReset}>■</button>
+            ) : (
+              <button className="dock-ctrl-btn dock-ctrl-primary" type="button" aria-label="Play" onClick={handlePlay}>▶</button>
+            )}
           </div>
 
-          {/* Row 2 — speed mode + play controls */}
+          {/* Row 2 — speed + learn + utility */}
           <div className="dock-row">
             <div className="dock-speeds">
               {[{ l: "Slow", v: 0.5 }, { l: "1×", v: 1 }, { l: "Fast", v: 2 }].map(({ l, v }) => (
                 <button
                   key={v}
-                  className={`dock-speed-pill${!isStepMode && speed === v ? " is-active" : ""}`}
+                  className={`dock-speed-pill${speed === v ? " is-active" : ""}`}
                   type="button"
                   onClick={() => handleSpeedSelect(v)}
                 >
                   {l}
                 </button>
               ))}
-              <button
-                className={`dock-speed-pill dock-speed-step${isStepMode ? " is-active" : ""}`}
-                type="button"
-                onClick={() => handleSpeedSelect("step")}
-              >
-                Step by Step
-              </button>
             </div>
-            <div className="dock-playcontrols">
-              <button
-                className="dock-ctrl-btn"
-                type="button"
-                aria-label="Reset"
-                disabled={!hasAnimationStarted}
-                onClick={handleReset}
-              >
-                ↺
-              </button>
-              {isStepMode ? (
-                <button
-                  className="dock-ctrl-btn dock-ctrl-primary"
-                  type="button"
-                  aria-label="Step forward"
-                  disabled={progress >= 1}
-                  onClick={handleStep}
-                >
-                  →
-                </button>
-              ) : isPlaying ? (
-                <button
-                  className="dock-ctrl-btn dock-ctrl-primary"
-                  type="button"
-                  aria-label="Pause"
-                  onClick={handlePause}
-                >
-                  Ⅱ
-                </button>
-              ) : (
-                <button
-                  className="dock-ctrl-btn dock-ctrl-primary"
-                  type="button"
-                  aria-label="Play"
-                  onClick={handlePlay}
-                >
-                  ▶
-                </button>
-              )}
-            </div>
+            <button
+              className={`dock-learn-btn${hasAnimationStarted && !isPlaying && progress < 1 ? " is-active" : ""}`}
+              type="button"
+              aria-label="Step forward"
+              disabled={progress >= 1}
+              onClick={handleStep}
+            >Learn</button>
+            <button className="dock-icon-btn" type="button" aria-label="Toggle theme" onClick={toggleTheme}>
+              {theme === "light" ? "☼" : "☾"}
+            </button>
+            <button className="dock-icon-btn" type="button" aria-label="About" onClick={() => setShowAbout(true)}>
+              ⓘ
+            </button>
           </div>
         </div>
       </main>
@@ -421,24 +376,24 @@ export default function App() {
                   <span className="help-desc">Pick the kolam family — Diamond, Circle, or Square. Each has its own geometry.</span>
                 </li>
                 <li>
-                  <span className="help-key">Grid slider</span>
-                  <span className="help-desc">Sets the dot grid from 3×3 to 15×15. Larger grids make richer, more intricate patterns.</span>
+                  <span className="help-key">− 5×5 +</span>
+                  <span className="help-desc">Tap + or − to set the dot grid from 3×3 to 15×15. Larger grids make richer, more intricate patterns.</span>
                 </li>
                 <li>
-                  <span className="help-key">⟳ New</span>
-                  <span className="help-desc">Generates a completely new kolam. Tap as many times as you like — no two are ever the same.</span>
+                  <span className="help-key">New Pattern</span>
+                  <span className="help-desc">Generates a fresh kolam. Tap as many times as you like — no two are ever the same.</span>
+                </li>
+                <li>
+                  <span className="help-key">▶ · ■ · ⏸</span>
+                  <span className="help-desc">▶ plays the drawing. ⏸ pauses it in place. ■ stops and resets. Tap the canvas anytime while playing to pause.</span>
                 </li>
                 <li>
                   <span className="help-key">Slow · 1× · Fast</span>
-                  <span className="help-desc">Auto-play the drawing at your pace. Controls fade for a clean view — tap the canvas to bring them back.</span>
+                  <span className="help-desc">Set the drawing speed before you play. Controls fade during playback so the pattern takes centre stage.</span>
                 </li>
                 <li>
-                  <span className="help-key">Step by Step</span>
-                  <span className="help-desc">Teaching mode. Tap → to draw one stroke at a time and watch the pattern build segment by segment.</span>
-                </li>
-                <li>
-                  <span className="help-key">▶ · ↺</span>
-                  <span className="help-desc">Play starts the drawing. Reset starts it over from the beginning.</span>
+                  <span className="help-key">Learn</span>
+                  <span className="help-desc">Pause first, then tap Learn to step through one stroke at a time. It lights up orange when ready — a calm way to trace and absorb the pattern.</span>
                 </li>
                 <li>
                   <span className="help-key">☼ · ☾</span>
