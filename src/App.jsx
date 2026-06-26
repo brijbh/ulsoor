@@ -3,6 +3,7 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import Header from "./components/Header";
 import KolamCanvas from "./components/KolamCanvas";
 import Controls from "./components/Controls";
+import GallerySheet from "./components/GallerySheet";
 
 import { createKolamAnimation } from "./logic/animation";
 import { buildKolam } from "./logic/alkolamEngine";
@@ -17,6 +18,47 @@ const SHAPES = [
   { id: "square", label: "Square" },
   // { id: "triangle", label: "Triangle" }, // hidden pending aesthetic fix
 ];
+
+const GALLERY_KEY = "kolampodu-gallery";
+const MAX_GALLERY = 50;
+
+// ── URL encoding ──────────────────────────────────────────────
+
+function encodeKolam(seed, nd, shapeId) {
+  return btoa(JSON.stringify({ seed, nd, shapeId }));
+}
+
+function decodeKolam(hash) {
+  try {
+    const { seed, nd, shapeId } = JSON.parse(atob(hash));
+    if (typeof seed === "number" && typeof nd === "number" && typeof shapeId === "string") {
+      return { seed, nd, shapeId };
+    }
+  } catch {
+    // invalid hash — ignore
+  }
+  return null;
+}
+
+function kolamShareUrl(seed, nd, shapeId) {
+  return `${window.location.origin}${window.location.pathname}#${encodeKolam(seed, nd, shapeId)}`;
+}
+
+// ── Gallery persistence ───────────────────────────────────────
+
+function loadGallery() {
+  try {
+    return JSON.parse(localStorage.getItem(GALLERY_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+function persistGallery(items) {
+  localStorage.setItem(GALLERY_KEY, JSON.stringify(items));
+}
+
+// ── Helpers ───────────────────────────────────────────────────
 
 function ShapeSelector({ selectedShape, onSelectShape }) {
   return (
@@ -73,10 +115,7 @@ function getRenderedPattern(dots) {
     const row = rows[rows.length - 1];
 
     if (!row || Math.abs(row.y - dot.y) > 1) {
-      rows.push({
-        y: dot.y,
-        count: 1,
-      });
+      rows.push({ y: dot.y, count: 1 });
     } else {
       row.count += 1;
     }
@@ -95,7 +134,7 @@ export default function App() {
   const [seed, setSeed] = useState(() => randomSeed());
 
   const shape = SHAPES.find(({ id }) => id === selectedShape) ?? SHAPES[0];
-  
+
   const getPattern = (id, nd) => {
     if (id === "diamond") {
       const p = [];
@@ -112,7 +151,6 @@ export default function App() {
       return Array(nd).fill(nd);
     }
     if (id === "circle") {
-      // Approximate circular pattern label
       if (nd === 3) return [1, 3, 1];
       if (nd === 5) return [3, 5, 5, 5, 3];
       if (nd === 7) return [3, 5, 7, 7, 7, 5, 3];
@@ -124,6 +162,7 @@ export default function App() {
   const kolam = useMemo(() => {
     return buildKolam({ nd: gridSize, shapeId: shape.id, seed });
   }, [shape.id, gridSize, seed]);
+
   const pattern = shape.id === "diamond"
     ? getPattern(shape.id, gridSize)
     : getRenderedPattern(kolam.dots);
@@ -138,6 +177,24 @@ export default function App() {
   const [theme, setTheme] = useState("light");
   const [showAbout, setShowAbout] = useState(false);
 
+  // Gallery + share state
+  const [gallery, setGallery] = useState(() => loadGallery());
+  const [showGallery, setShowGallery] = useState(false);
+  const [toast, setToast] = useState("");
+  const toastTimerRef = useRef(null);
+
+  // ── Parse shared URL hash on first load ──────────────────────
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (!hash) return;
+    const state = decodeKolam(hash);
+    if (!state) return;
+    if (SHAPES.find((s) => s.id === state.shapeId)) setSelectedShape(state.shapeId);
+    if (state.nd >= 3 && state.nd <= 15) setGridSize(state.nd);
+    setSeed(state.seed);
+    window.history.replaceState(null, "", window.location.pathname);
+  }, []);
+
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
@@ -151,10 +208,7 @@ export default function App() {
       onProgress: setProgress,
       onComplete: () => { setIsPlaying(false); },
     });
-
-    return () => {
-      animationRef.current?.pause();
-    };
+    return () => { animationRef.current?.pause(); };
   }, []);
 
   const handleSpeedChange = (newSpeed) => {
@@ -171,7 +225,6 @@ export default function App() {
     if (animationRef.current?.progress >= 1) {
       animationRef.current.reset();
     }
-
     animationRef.current?.start();
     setIsPlaying(true);
     setHasAnimationStarted(true);
@@ -216,6 +269,74 @@ export default function App() {
     resetAnimation();
   };
 
+  // ── Gallery helpers ───────────────────────────────────────────
+
+  const isSaved = gallery.some(
+    (g) => g.seed === seed && g.nd === gridSize && g.shapeId === selectedShape
+  );
+
+  const showToast = (msg) => {
+    setToast(msg);
+    clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(""), 2200);
+  };
+
+  const saveToGallery = useCallback((s, nd, shapeId) => {
+    setGallery((prev) => {
+      if (prev.some((g) => g.seed === s && g.nd === nd && g.shapeId === shapeId)) return prev;
+      const next = [{ seed: s, nd, shapeId }, ...prev].slice(0, MAX_GALLERY);
+      persistGallery(next);
+      return next;
+    });
+  }, []);
+
+  const handleSave = () => {
+    saveToGallery(seed, gridSize, selectedShape);
+  };
+
+  const handleShare = () => {
+    saveToGallery(seed, gridSize, selectedShape);
+    const url = kolamShareUrl(seed, gridSize, selectedShape);
+    if (navigator.share) {
+      navigator.share({ title: "Kolampodu", url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        showToast("Link copied!");
+      }).catch(() => {
+        showToast("Could not copy link");
+      });
+    }
+  };
+
+  const handleShareItem = (item) => {
+    const url = kolamShareUrl(item.seed, item.nd, item.shapeId);
+    if (navigator.share) {
+      navigator.share({ title: "Kolampodu", url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        showToast("Link copied!");
+      }).catch(() => {
+        showToast("Could not copy link");
+      });
+    }
+  };
+
+  const handleLoadFromGallery = (item) => {
+    setSeed(item.seed);
+    setGridSize(item.nd);
+    setSelectedShape(item.shapeId);
+    resetAnimation();
+    setShowGallery(false);
+  };
+
+  const handleDeleteFromGallery = (index) => {
+    setGallery((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      persistGallery(next);
+      return next;
+    });
+  };
+
   return (
     <div className="page">
       <aside className="side-panel">
@@ -241,12 +362,14 @@ export default function App() {
           About
         </button>
       </aside>
+
       <main className="canvas-area" aria-label="Kolam drawing area">
         <div className="desktop-tools" aria-label="Display options">
           <button className="icon-button" type="button" aria-label="Toggle theme" onClick={toggleTheme}>
             {theme === "light" ? "☼" : "☾"}
           </button>
         </div>
+
         <KolamCanvas
           dots={kolam.dots}
           path={kolam.pathD}
@@ -268,14 +391,25 @@ export default function App() {
           onSpeedChange={handleSpeedChange}
         />
 
-        {/* Subtle brand identity at top of canvas */}
+        {/* Wordmark — centred at top */}
         <div className="canvas-wordmark" aria-hidden="true">
           <img src="/favicon.svg" className="wordmark-icon" alt="" />
           <span className="wordmark-text">KOLAMPODU</span>
         </div>
 
+        {/* Floating save heart — top-right of canvas */}
+        <button
+          className={`canvas-heart-btn${isSaved ? " is-saved" : ""}`}
+          type="button"
+          aria-label={isSaved ? "Saved" : "Save this kolam"}
+          onClick={handleSave}
+        >
+          {isSaved ? "♥" : "♡"}
+        </button>
+
         {/* Dark control dock */}
         <div className={`mobile-dock${isPlaying ? " is-playing" : (hasAnimationStarted && progress < 1) ? " is-paused" : ""}`} aria-label="Controls">
+
           {/* Row 1 — shape, grid, generate, play controls */}
           <div className="dock-row">
             <div className="dock-shapes">
@@ -322,7 +456,7 @@ export default function App() {
             )}
           </div>
 
-          {/* Row 2 — speed + learn + utility */}
+          {/* Row 2 — speed + learn + share + gallery + utility */}
           <div className="dock-row">
             <div className="dock-speeds">
               {[{ l: "Slow", v: 0.5 }, { l: "1×", v: 1 }, { l: "Fast", v: 2 }].map(({ l, v }) => (
@@ -343,6 +477,20 @@ export default function App() {
               disabled={progress >= 1}
               onClick={handleStep}
             >Learn</button>
+            <button
+              className="dock-icon-btn"
+              type="button"
+              aria-label="Share this kolam"
+              onClick={handleShare}
+              title="Share"
+            >↑</button>
+            <button
+              className="dock-icon-btn"
+              type="button"
+              aria-label="Saved kolams"
+              onClick={() => setShowGallery(true)}
+              title="Gallery"
+            >⊞</button>
             <button className="dock-icon-btn" type="button" aria-label="Toggle theme" onClick={toggleTheme}>
               {theme === "light" ? "☼" : "☾"}
             </button>
@@ -351,8 +499,23 @@ export default function App() {
             </button>
           </div>
         </div>
+
+        {/* Share toast */}
+        {toast && <div className="share-toast" role="status">{toast}</div>}
       </main>
 
+      {/* Gallery sheet */}
+      {showGallery && (
+        <GallerySheet
+          gallery={gallery}
+          onLoad={handleLoadFromGallery}
+          onShare={handleShareItem}
+          onDelete={handleDeleteFromGallery}
+          onClose={() => setShowGallery(false)}
+        />
+      )}
+
+      {/* About modal */}
       {showAbout && (
         <div className="about-overlay" role="dialog" aria-modal="true" aria-label="About Kolampodu" onClick={() => setShowAbout(false)}>
           <div className="about-modal" onClick={(e) => e.stopPropagation()}>
@@ -394,6 +557,10 @@ export default function App() {
                 <li>
                   <span className="help-key">Learn</span>
                   <span className="help-desc">Pause first, then tap Learn to step through one stroke at a time. It lights up orange when ready — a calm way to trace and absorb the pattern.</span>
+                </li>
+                <li>
+                  <span className="help-key">♡ · ↑ · ⊞</span>
+                  <span className="help-desc">♡ saves to your gallery. ↑ saves and copies a share link. ⊞ opens your gallery — tap any saved kolam to load it.</span>
                 </li>
                 <li>
                   <span className="help-key">☼ · ☾</span>

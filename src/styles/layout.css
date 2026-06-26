@@ -1129,3 +1129,229 @@
     font-size: 18px;
   }
 }
+
+/* ── Floating save heart ─────────────────────────────────────── */
+
+.canvas-heart-btn {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 2;
+  width: 38px;
+  height: 38px;
+  border: none;
+  background: var(--surface-glass);
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.canvas-heart-btn.is-saved {
+  color: #ff7517;
+}
+
+.canvas-heart-btn:active {
+  background: var(--surface-glass-active);
+}
+
+/* ── Share toast ─────────────────────────────────────────────── */
+
+.share-toast {
+  position: fixed;
+  bottom: calc(172px + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  padding: 10px 20px;
+  background: #191513;
+  color: rgba(245, 237, 228, 0.92);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: toast-in 0.2s ease;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ── Gallery sheet ───────────────────────────────────────────── */
+
+.gallery-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(4px);
+  padding: 0 0 env(safe-area-inset-bottom);
+}
+
+.gallery-sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 82svh;
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  padding: 28px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gallery-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gallery-sheet-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.gallery-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--surface-glass);
+  color: var(--muted);
+  border-radius: 50%;
+  font-size: 13px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: color 0.2s ease;
+}
+
+.gallery-close:hover {
+  color: var(--text);
+}
+
+.gallery-note {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-top: -4px;
+}
+
+.gallery-empty {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  text-align: center;
+  padding: 32px 0;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ── Kolam thumbnail ─────────────────────────────────────────── */
+
+.gallery-thumb {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface-glass);
+  border: 1px solid var(--border);
+}
+
+.gallery-thumb-canvas {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.gallery-thumb-canvas:active {
+  background: var(--surface-glass-active);
+}
+
+.gallery-thumb-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.gallery-dot {
+  fill: var(--dot);
+}
+
+.gallery-path {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.gallery-thumb-actions {
+  display: flex;
+  gap: 0;
+  border-top: 1px solid var(--border);
+}
+
+.gallery-action-btn {
+  flex: 1;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.gallery-action-btn:first-child {
+  border-right: 1px solid var(--border);
+}
+
+.gallery-action-btn:active {
+  background: var(--surface-glass-active);
+  color: var(--text);
+}
+
+.gallery-delete-btn:active {
+  color: #c0312b;
+}
+
+/* gallery sheet on wider screens */
+@media (min-width: 600px) {
+  .gallery-overlay {
+    align-items: center;
+  }
+
+  .gallery-sheet {
+    border-radius: 20px;
+    max-height: 78svh;
+  }
+
+  .share-toast {
+    bottom: calc(190px + 16px);
+  }
+}
+
+/* dark theme — share toast stays dark (already dark-on-dark dock colour) */
+:root[data-theme="dark"] .share-toast {
+  background: #ede0c8;
+  color: #191513;
+}
