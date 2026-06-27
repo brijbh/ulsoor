@@ -5,6 +5,7 @@ import KolamCanvas from "./components/KolamCanvas";
 import Controls from "./components/Controls";
 import GallerySheet from "./components/GallerySheet";
 import ShareIcon from "./components/ShareIcon";
+import GalleryIcon from "./components/GalleryIcon";
 
 import { createKolamAnimation } from "./logic/animation";
 import { buildKolam } from "./logic/alkolamEngine";
@@ -508,8 +509,7 @@ export default function App() {
               type="button"
               aria-label="Saved kolams"
               onClick={() => setShowGallery(true)}
-              title="Gallery"
-            >⊞</button>
+            ><GalleryIcon size={20} /></button>
             <button className="dock-icon-btn" type="button" aria-label="Toggle theme" onClick={toggleTheme}>
               {theme === "light" ? "☼" : "☾"}
             </button>
