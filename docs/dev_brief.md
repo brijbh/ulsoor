@@ -10,11 +10,30 @@ This is NOT a drawing tool.
 
 This is a **guided visual experience**:
 
-* User selects a dot grid
+* User selects a dot grid, grid size
 * Presses Play
 * Watches the kolam being drawn step-by-step
+* Auto plan has various drawing speed.
 
 ---
+
+## Project docs
+
+* Dev Brief : /docs/dev_brief.md <-- this document.
+* Current Status: /docs/tasks.md
+
+## Reference docs
+* Location: /docs
+* Doc List
+	* 01-about-kolam.pdf
+	* 02-AlkolamGitHub.pdf
+	* 03-An_algorithm_for_one-stroke_kolam_generation_using.pdf
+	* 04-point-lattice-system.pdf
+	* 05-pulli-kolam-topological-appraoch.pdf
+
+
+## Sample Images
+* Location: /docs/sample-kolams
 
 ## Core Product Principles
 
@@ -69,6 +88,14 @@ docs/
 6. Do NOT refactor unrelated files
 
 ---
+
+## Permissions
+1. You have all the permissions to proceed with development.
+2. You do not have ask for approval for all tasks.
+3. YOur permissions are approved ONLY to be performed with in the "C:\dev\ulsoor\" folder.
+4. Permissions are applicable for project related development tasks that include, creating files, git tasks, creating directions, modifying files, modifying folders.
+5. If you forsee the need for more permission, ask me so I can set the permission instructions once, so you can continue uninterupppted. 
+
 
 # UI / UX Design Reference (MANDATORY)
 
@@ -338,7 +365,7 @@ This is for awareness only.
 
 ---
 
-# Instruction to Codex
+# General Instructions
 
 Read this file completely.
 
