@@ -146,7 +146,7 @@ function randomSeed() {
 
 export default function App() {
   const [selectedShape, setSelectedShape] = useState(_sharedOnLoad?.shapeId ?? "diamond");
-  const [gridSize, setGridSize] = useState(_sharedOnLoad?.nd ?? 5);
+  const [gridSize, setGridSize] = useState(_sharedOnLoad?.nd ?? 7);
   const [seed, setSeed] = useState(() => _sharedOnLoad?.seed ?? randomSeed());
 
   const shape = SHAPES.find(({ id }) => id === selectedShape) ?? SHAPES[0];
@@ -277,7 +277,12 @@ export default function App() {
   const handleGenerate = useCallback(() => {
     setSeed(randomSeed());
     resetAnimation();
-  }, [resetAnimation]);
+    if (gridSize < 7) {
+      clearTimeout(toastTimerRef.current);
+      setToast("Try 7×7 or larger for more variety");
+      toastTimerRef.current = setTimeout(() => setToast(""), 2400);
+    }
+  }, [resetAnimation, gridSize]);
 
   const handleSelectShape = (shapeId) => {
     setSelectedShape(shapeId);
