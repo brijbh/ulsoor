@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import KolamCanvas from "./components/KolamCanvas";
 import Controls from "./components/Controls";
 import GallerySheet from "./components/GallerySheet";
+import ShareIcon from "./components/ShareIcon";
 
 import { createKolamAnimation } from "./logic/animation";
 import { buildKolam } from "./logic/alkolamEngine";
@@ -43,6 +44,21 @@ function decodeKolam(hash) {
 function kolamShareUrl(seed, nd, shapeId) {
   return `${window.location.origin}${window.location.pathname}#${encodeKolam(seed, nd, shapeId)}`;
 }
+
+// Parse the share hash once at module load time — before React mounts.
+// Storing it here (not in a ref or state) means the value survives React
+// StrictMode's mount→cleanup→remount cycle and the URL cleanup in the effect.
+const _sharedOnLoad = (() => {
+  try {
+    const hash = window.location.hash.slice(1);
+    if (!hash) return null;
+    const state = decodeKolam(hash);
+    if (!state) return null;
+    if (!SHAPES.find((s) => s.id === state.shapeId)) return null;
+    if (state.nd < 3 || state.nd > 15) return null;
+    return state;
+  } catch { return null; }
+})();
 
 // ── Gallery persistence ───────────────────────────────────────
 
@@ -129,9 +145,9 @@ function randomSeed() {
 }
 
 export default function App() {
-  const [selectedShape, setSelectedShape] = useState("diamond");
-  const [gridSize, setGridSize] = useState(5);
-  const [seed, setSeed] = useState(() => randomSeed());
+  const [selectedShape, setSelectedShape] = useState(_sharedOnLoad?.shapeId ?? "diamond");
+  const [gridSize, setGridSize] = useState(_sharedOnLoad?.nd ?? 5);
+  const [seed, setSeed] = useState(() => _sharedOnLoad?.seed ?? randomSeed());
 
   const shape = SHAPES.find(({ id }) => id === selectedShape) ?? SHAPES[0];
 
@@ -183,16 +199,20 @@ export default function App() {
   const [toast, setToast] = useState("");
   const toastTimerRef = useRef(null);
 
-  // ── Parse shared URL hash on first load ──────────────────────
+  // ── Auto-play when app was opened from a shared URL ──────────
+  // State is already initialised from _sharedOnLoad above (no flash, no
+  // state updates here). The effect only cleans up the URL and schedules
+  // play. StrictMode cancels the first timeout, but _sharedOnLoad is
+  // module-level so the effect re-schedules correctly on remount.
   useEffect(() => {
-    const hash = window.location.hash.slice(1);
-    if (!hash) return;
-    const state = decodeKolam(hash);
-    if (!state) return;
-    if (SHAPES.find((s) => s.id === state.shapeId)) setSelectedShape(state.shapeId);
-    if (state.nd >= 3 && state.nd <= 15) setGridSize(state.nd);
-    setSeed(state.seed);
+    if (!_sharedOnLoad) return;
     window.history.replaceState(null, "", window.location.pathname);
+    const tid = setTimeout(() => {
+      animationRef.current?.start();
+      setIsPlaying(true);
+      setHasAnimationStarted(true);
+    }, 500);
+    return () => clearTimeout(tid);
   }, []);
 
   useEffect(() => {
@@ -294,31 +314,26 @@ export default function App() {
     saveToGallery(seed, gridSize, selectedShape);
   };
 
-  const handleShare = () => {
-    saveToGallery(seed, gridSize, selectedShape);
-    const url = kolamShareUrl(seed, gridSize, selectedShape);
+  const doShare = async (url) => {
     if (navigator.share) {
-      navigator.share({ title: "Kolampodu", url }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(url).then(() => {
-        showToast("Link copied!");
-      }).catch(() => {
-        showToast("Could not copy link");
-      });
+      try { await navigator.share({ title: "Kolampodu", url }); } catch { /* user cancelled */ }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast("Link copied!");
+    } catch {
+      showToast("Could not copy link");
     }
   };
 
+  const handleShare = () => {
+    saveToGallery(seed, gridSize, selectedShape);
+    doShare(kolamShareUrl(seed, gridSize, selectedShape));
+  };
+
   const handleShareItem = (item) => {
-    const url = kolamShareUrl(item.seed, item.nd, item.shapeId);
-    if (navigator.share) {
-      navigator.share({ title: "Kolampodu", url }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(url).then(() => {
-        showToast("Link copied!");
-      }).catch(() => {
-        showToast("Could not copy link");
-      });
-    }
+    doShare(kolamShareUrl(item.seed, item.nd, item.shapeId));
   };
 
   const handleLoadFromGallery = (item) => {
@@ -478,12 +493,11 @@ export default function App() {
               onClick={handleStep}
             >Learn</button>
             <button
-              className="dock-icon-btn"
+              className="dock-share-btn"
               type="button"
               aria-label="Share this kolam"
               onClick={handleShare}
-              title="Share"
-            >↑</button>
+            ><ShareIcon size={15} /></button>
             <button
               className="dock-icon-btn"
               type="button"

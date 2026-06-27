@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { buildKolam } from "../logic/alkolamEngine";
 import { getViewBoxBounds } from "../logic/bounds";
+import ShareIcon from "./ShareIcon";
 
 export default function KolamThumbnail({ seed, nd, shapeId, onClick, onShare, onDelete }) {
   const kolam = useMemo(() => buildKolam({ nd, shapeId, seed }), [nd, shapeId, seed]);
@@ -21,7 +22,7 @@ export default function KolamThumbnail({ seed, nd, shapeId, onClick, onShare, on
         </svg>
       </div>
       <div className="gallery-thumb-actions">
-        <button type="button" className="gallery-action-btn" aria-label="Share this kolam" onClick={onShare}>↑</button>
+        <button type="button" className="gallery-action-btn" aria-label="Share this kolam" onClick={onShare}><ShareIcon size={15} /></button>
         <button type="button" className="gallery-action-btn gallery-delete-btn" aria-label="Delete" onClick={onDelete}>×</button>
       </div>
     </div>

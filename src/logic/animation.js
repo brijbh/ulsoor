@@ -33,15 +33,14 @@ export function getPathRangeDrawStyles(pathLength, startLength, endLength) {
   };
 }
 
-export function getStrokeMaterial(progress, activeSegmentProgress = 0) {
+export function getStrokeMaterial(progress) {
   const fadeIn = clampProgress(progress * 12);
-  const pulse = Math.sin(activeSegmentProgress * Math.PI);
 
   return {
     opacity: 0.18 + fadeIn * 0.82,
-    strokeWidth: 2.34 + pulse * 0.18,
+    strokeWidth: 2.4,
     tipOpacity: 0.28 + fadeIn * 0.52,
-    tipStrokeWidth: 2.75 + pulse * 0.16,
+    tipStrokeWidth: 2.7,
   };
 }
 

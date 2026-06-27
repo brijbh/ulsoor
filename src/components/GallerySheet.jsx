@@ -10,7 +10,7 @@ export default function GallerySheet({ gallery, onLoad, onShare, onDelete, onClo
         </div>
         <p className="gallery-note">Saved on this device only · Share a link to open anywhere</p>
         {gallery.length === 0 ? (
-          <p className="gallery-empty">No kolams saved yet.<br />Tap ♡ to save or ↑ to save and share.</p>
+          <p className="gallery-empty">No kolams saved yet.<br />Tap ♡ to save or the share icon to save and share.</p>
         ) : (
           <div className="gallery-grid">
             {gallery.map((item, i) => (

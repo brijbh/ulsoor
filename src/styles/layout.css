@@ -500,6 +500,7 @@
 .mobile-dock.is-playing .dock-new-btn,
 .mobile-dock.is-playing .dock-speeds,
 .mobile-dock.is-playing .dock-icon-btn,
+.mobile-dock.is-playing .dock-share-btn,
 .mobile-dock.is-playing .dock-learn-btn {
   opacity: 0.18;
   pointer-events: none;
@@ -510,6 +511,7 @@
 .mobile-dock.is-paused .dock-grid-control,
 .mobile-dock.is-paused .dock-new-btn,
 .mobile-dock.is-paused .dock-speeds,
+.mobile-dock.is-paused .dock-share-btn,
 .mobile-dock.is-paused .dock-icon-btn {
   opacity: 0.18;
   pointer-events: none;
@@ -564,13 +566,13 @@
 .dock-grid-control {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 7px;
   flex-shrink: 0;
 }
 
 .dock-grid-stepper-btn {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.08);
@@ -598,7 +600,7 @@
   font-weight: 600;
   color: rgba(245, 237, 228, 0.82);
   white-space: nowrap;
-  min-width: 28px;
+  min-width: 34px;
   text-align: center;
 }
 
@@ -626,7 +628,7 @@
   flex: 1;
   min-width: 0;
   height: 32px;
-  padding: 0 8px;
+  padding: 0 2px;
   border: 1px solid rgba(255, 117, 23, 0.38);
   border-radius: 16px;
   background: rgba(255, 117, 23, 0.10);
@@ -736,6 +738,26 @@
 .dock-learn-btn:disabled {
   opacity: 0.22;
   cursor: default;
+}
+
+/* Share icon button — same shape as dock-icon-btn */
+.dock-share-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  color: rgba(245, 237, 228, 0.82);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.dock-share-btn:active {
+  background: rgba(255, 255, 255, 0.18);
+  color: rgba(245, 237, 228, 0.95);
 }
 
 .desktop-tools {
@@ -1003,6 +1025,16 @@
 
 :root[data-theme="dark"] .dock-ctrl-primary:active:not(:disabled) {
   background: #5a3516;
+}
+
+:root[data-theme="dark"] .dock-share-btn {
+  background: rgba(0, 0, 0, 0.07);
+  color: rgba(25, 21, 19, 0.78);
+}
+
+:root[data-theme="dark"] .dock-share-btn:active {
+  background: rgba(0, 0, 0, 0.14);
+  color: #191513;
 }
 
 :root[data-theme="dark"] .dock-learn-btn {
