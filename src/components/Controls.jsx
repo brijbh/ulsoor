@@ -58,13 +58,13 @@ export default function Controls({
         <button
           className="control-item"
           type="button"
-          title="Step"
-          aria-label="Step"
+          title="Learn — step through one stroke at a time"
+          aria-label="Learn"
           disabled={isPlaying || progress >= 1}
           onClick={onStep}
         >
           <span className="control-button" aria-hidden="true">→</span>
-          <span className="control-label">Step</span>
+          <span className="control-label">Learn</span>
         </button>
         <button
           className="control-item"

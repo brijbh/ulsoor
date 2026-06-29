@@ -378,6 +378,47 @@ export default function App() {
         <button className="generate-button" type="button" onClick={handleGenerate}>
           Generate New
         </button>
+
+        <div className="desktop-action-group">
+          <button
+            className={`desktop-action-btn${isSaved ? " is-saved" : ""}`}
+            type="button"
+            aria-label={isSaved ? "Saved to gallery" : "Save to gallery"}
+            onClick={handleSave}
+          >
+            <span className="desktop-action-icon" aria-hidden="true">{isSaved ? "♥" : "♡"}</span>
+            <span>{isSaved ? "Saved" : "Save"}</span>
+          </button>
+          <button
+            className="desktop-action-btn"
+            type="button"
+            aria-label="Share this kolam"
+            onClick={handleShare}
+          >
+            <span className="desktop-action-icon" aria-hidden="true"><ShareIcon size={14} /></span>
+            <span>Share</span>
+          </button>
+          <button
+            className="desktop-action-btn"
+            type="button"
+            aria-label="Open gallery"
+            onClick={() => setShowGallery(true)}
+          >
+            <span className="desktop-action-icon" aria-hidden="true"><GalleryIcon size={16} /></span>
+            <span>Gallery</span>
+          </button>
+          <button
+            className={`desktop-action-btn desktop-learn-btn${hasAnimationStarted && !isPlaying && progress < 1 ? " is-active" : ""}`}
+            type="button"
+            aria-label="Learn — step one stroke at a time"
+            disabled={progress >= 1}
+            onClick={handleStep}
+          >
+            <span className="desktop-action-icon" aria-hidden="true">→</span>
+            <span>Learn</span>
+          </button>
+        </div>
+
         <p className="side-note">A kolam a day,<br />brings peace<br />in every way.</p>
         <button className="about-link" type="button" onClick={() => setShowAbout(true)}>
           About
@@ -390,6 +431,7 @@ export default function App() {
             {theme === "light" ? "☼" : "☾"}
           </button>
         </div>
+
 
         <KolamCanvas
           dots={kolam.dots}
